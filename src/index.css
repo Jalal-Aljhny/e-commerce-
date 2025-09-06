@@ -1,5 +1,9 @@
 body {
   background-color: white;
+  overflow-x: hidden;
+}
+html {
+  overflow-x: hidden;
 }
 body * {
   box-sizing: border-box;
@@ -203,4 +207,33 @@ form.error {
   align-items: center;
   justify-content: center;
   gap: 2rem;
+}
+
+.nav_link_active {
+  color: white;
+  background-color: #2d82d6;
+  text-decoration: none;
+  border-radius: 2rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #2d82d6;
+}
+.nav_link {
+  color: #2d82d6;
+  text-decoration: none;
+  border-radius: 2rem;
+  padding: 0.5rem 1rem;
+  transition-duration: 300ms;
+  border: 1px solid #2d82d6;
+  &:hover {
+    color: white;
+    background-color: #2d82d6;
+  }
+}
+.page_active {
+  box-shadow: 2px 2px 10px #3335;
+  text-decoration: none;
+}
+.page {
+  box-shadow: none;
+  text-decoration: none;
 }

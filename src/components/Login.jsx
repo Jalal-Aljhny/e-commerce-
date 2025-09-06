@@ -3,30 +3,32 @@ import { useForm } from "react-hook-form";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { MainContext } from "../services/context/MainContext";
 const Login = () => {
-  const { logIn, validateEmail } = useContext(MainContext);
+  const {
+    logIn: login,
+    validateEmail,
+    loginError,
+    clearLoginError,
+  } = useContext(MainContext);
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
   const onSumbit = (data) => {
-    // clearErrors();
-    logIn(data.email, data.password);
-    console.log(data);
+    login(data.email, data.password, rememberMe);
   };
-
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showIcon, setShowIcon] = useState(false);
 
   return (
     <form
       className={`form ${
-        // {signInErrors.message?.length ||}
-        Object.keys(errors).length > 0 ? "error" : ""
+        loginError?.length > 0 || Object.keys(errors).length > 0 ? "error" : ""
       }`}
       onSubmit={handleSubmit(onSumbit)}
     >
-      <h2>Sign IN</h2>
+      <h2>Log IN</h2>
 
       <div className="form-group">
         <label htmlFor="email">Email</label>
@@ -39,10 +41,10 @@ const Login = () => {
             required: true,
             validate: validateEmail,
           })}
-          className={
-            // signInErrors.name == "email" ||
-            errors.email ? "error" : null
-          }
+          className={errors.email ? "error" : null}
+          onChange={() => {
+            clearLoginError();
+          }}
         />
         {errors.email?.type == "required" ? (
           <small className="error__message">Email cannot be empty.</small>
@@ -50,9 +52,6 @@ const Login = () => {
         {errors.email?.type == "validate" ? (
           <small className="error__message">This is not a valid email.</small>
         ) : null}
-        {/* {signInErrors.name == "email" ? (
-          <small className="error__message">{signInErrors.message}</small>
-        ) : null} */}
       </div>
       <div className="form-group">
         <label htmlFor="password">Password</label>
@@ -64,12 +63,12 @@ const Login = () => {
           {...register("password", {
             required: true,
           })}
-          className={
-            // signInErrors.name == "mismatch" ||
-            errors.password ? "error" : null
-          }
+          className={errors.password ? "error" : null}
           onFocus={() => {
             setShowIcon(true);
+          }}
+          onChange={() => {
+            clearLoginError();
           }}
         />
         {showIcon ? (
@@ -83,9 +82,9 @@ const Login = () => {
                 errors.password?.type == "validate"
                   ? { top: "27%" }
                   : errors.password?.type == "required"
-                  ? //   ? { top: "52%" }
-                    //   : signInErrors.name == "mismatch"
-                    { top: "54%" }
+                  ? { top: "54%" }
+                  : loginError?.length > 0
+                  ? { top: "62%" }
                   : null
               }
             />
@@ -99,9 +98,9 @@ const Login = () => {
                 errors.password?.type == "validate"
                   ? { top: "27%" }
                   : errors.password?.type == "required"
-                  ? //   ? { top: "52%" }
-                    //   : signInErrors.name == "mismatch"
-                    { top: "54%" }
+                  ? { top: "54%" }
+                  : loginError?.length > 0
+                  ? { top: "62%" }
                   : null
               }
             />
@@ -110,13 +109,35 @@ const Login = () => {
         {errors.password?.type == "required" ? (
           <small className="error__message">Password cannot be empty.</small>
         ) : null}
-        {/* {signInErrors.name == "mismatch" ? (
-          <small className="error__message">{signInErrors.message}</small>
-        ) : null} */}
       </div>
-
+      {loginError?.length > 0 ? (
+        <small className="error">{loginError}</small>
+      ) : null}
+      <div
+        className="form-group"
+        style={{
+          flexDirection: "row",
+          gap: "1rem",
+          alignItems: "flex-end",
+        }}
+      >
+        <label htmlFor="remember">Remember me</label>
+        <input
+          type="checkbox"
+          id="remember"
+          checked={rememberMe}
+          onChange={(event) => {
+            setRememberMe(event.target.checked);
+            console.log("remember:", event.target.checked);
+          }}
+          style={{
+            width: "15px",
+            height: "15px",
+          }}
+        />
+      </div>
       <button className="submit" type="submit">
-        Sign In
+        Log In
       </button>
     </form>
   );

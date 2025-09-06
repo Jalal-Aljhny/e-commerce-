@@ -12,7 +12,7 @@ const Logo = () => {
       }}
     >
       <p className={styles.fl}>AJY</p>
-      <p className={styles.sl}>Book e-commerce</p>
+      <p className={styles.sl}>Food e-commerce</p>
     </div>
   );
 };

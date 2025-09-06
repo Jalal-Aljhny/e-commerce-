@@ -1,17 +1,28 @@
-import { createContext, useCallback, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useReducer,
+  useState,
+} from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 axios.defaults.xsrfCookieName = "XSRF-TOKEN";
 axios.defaults.xsrfHeaderName = "X-XSRF-TOKEN";
-axios.defaults.baseURL = "http://127.0.0.1:8000";
+axios.defaults.baseURL = "https://localhost:8000";
 axios.defaults.withCredentials = true;
+axios.defaults.withXSRFToken = true;
 
-// Function to get a specific cookie by name
-const getCookie = (name) => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(";").shift();
-};
+// const getCookie = (name) => {
+//   const value = `; ${document.cookie}`;
+//   const parts = value.split(`; ${name}=`);
+//   if (parts.length === 2) return parts.pop().split(";").shift();
+// };
+
+// function deleteCookie(name) {
+//   document.cookie = name + "=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+// }
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const MainContext = createContext();
@@ -19,13 +30,154 @@ export const MainContext = createContext();
 export const MainProvider = ({ children }) => {
   const [passwordErrors, setPasswordErrors] = useState([]);
   const [isAuth, setIsAuth] = useState(false);
+  const [registerError, setRegisterError] = useState(null);
+  const [items, setItems] = useState([]);
+  const [productData, setProductData] = useState(null);
+  const clearRegisterError = () => {
+    setRegisterError(null);
+  };
+  const [loginError, setLoginError] = useState(null);
+  const clearLoginError = () => {
+    setLoginError(null);
+  };
+  const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+  const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
 
-  const fetchCsrfToken = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       await axios.get("/sanctum/csrf-cookie");
-      console.log("CSRF cookie fetched successfully.");
+      const response = await axios.get("/api/user", { withCredentials: true });
+      setUser(response.data);
+      setIsAuth(true);
+
+      if (sessionStorage.getItem("pre_page")) {
+        navigate(sessionStorage.getItem("pre_page"));
+        sessionStorage.clear();
+      }
+    } catch {
+      console.log("not logged in");
+      setIsAuth(false);
+      setUser(null);
+    }
+  }, [navigate]);
+
+  const checkUser = useCallback(async (userId) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      const response = await axios.get(`/api/users/${userId}`, {
+        withCredentials: true,
+      });
+      if (response.data.user.role.includes("Super Admin")) {
+        setRole("super");
+      } else {
+        setRole("user");
+      }
     } catch (error) {
-      console.error("Error fetching CSRF token:", error);
+      console.log(error);
+      console.log("failed to get user role");
+      setRole(null);
+    }
+  }, []);
+
+  const [users, setUsers] = useState([]);
+  const getUsers = useCallback(async () => {
+    try {
+      const response = await axios.get("/api/users", {
+        headers: {
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        withCredentials: true,
+      });
+      console.log("users : ", response.data.users);
+      setUsers(response.data.users);
+    } catch (error) {
+      console.log(error);
+      console.log("failed to get users ");
+    }
+  }, []);
+
+  const getUser = useCallback(async (userId) => {
+    try {
+      const response = await axios.get(`/api/users/${userId}`, {
+        headers: {
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        withCredentials: true,
+      });
+      return response;
+    } catch (error) {
+      console.log(error);
+      console.log("failed to get user ");
+    }
+  }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (user?.id) {
+      checkUser(user.id);
+    }
+  }, [user, checkUser]);
+
+  const updateUserName = async (userId, newName) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      await axios.patch(
+        `/api/users/${userId}`,
+        { name: newName },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      // setUsers(response.data.users);
+      // console.log("users : ", response.data.users);
+      await getUsers();
+    } catch (error) {
+      console.error("Failed to update item", error);
+    }
+  };
+
+  const updateUserRole = async (userId, newRole) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      const response = await axios.patch(
+        `/api/users/update-role/${userId}`,
+        { role: newRole },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      await getUsers();
+      console.log("users : ", response.data);
+    } catch (error) {
+      console.error("Failed to update item", error);
+    }
+  };
+
+  const deleteUser = async (id) => {
+    try {
+      const response = await axios.delete(`/api/users/${id}`, {
+        headers: { Accept: "application/json" },
+        withCredentials: true,
+      });
+      await getUsers();
+      console.log(response.data.message);
+    } catch (error) {
+      console.error("Error deleting product:", error.response?.data);
     }
   };
 
@@ -65,61 +217,539 @@ export const MainProvider = ({ children }) => {
     return re.test(username);
   }, []);
 
-  const register = useCallback(async (name, email, password, password2) => {
-    // Prepare the request body
-    await fetchCsrfToken();
-    const requestBody = new FormData();
-    requestBody.append("name", name);
-    requestBody.append("email", email);
-    requestBody.append("password", password);
-    requestBody.append("password_confirmation", password2);
+  const register = useCallback(
+    async (name, email, password, password2, rememberMe) => {
+      try {
+        await axios.get("/sanctum/csrf-cookie");
+        // Prepare form data
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("email", email);
+        formData.append("password", password);
+        formData.append("password_confirmation", password2);
+        formData.append("remember", rememberMe);
 
-    const xsrfToken = getCookie("XSRF-TOKEN"); // Get the CSRF token from cookies
+        await axios.post("/register", formData, {
+          headers: {
+            Accept: "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          withCredentials: true,
+        });
+        setIsAuth(true);
+        if (sessionStorage.getItem("pre_page")) {
+          navigate(`${sessionStorage.getItem("pre_page")}`);
+        } else {
+          navigate("/");
+        }
+      } catch (error) {
+        console;
+        const err = error.response
+          ? error.response.data.message
+          : error.message;
+        console.log(" Register error : ", err);
+        setRegisterError(err); // to display on register page
+        setIsAuth(false);
+      }
+    },
+    [navigate]
+  );
+  const logIn = useCallback(
+    async (email, password, rememberMe) => {
+      // Prepare the request body
+      const requestBody = new FormData();
+      requestBody.append("email", email);
+      requestBody.append("password", password);
+      requestBody.append("remember", rememberMe);
 
+      try {
+        await axios.get("/sanctum/csrf-cookie");
+        await axios.post("/login", requestBody, {
+          headers: {
+            Accept: "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          withCredentials: true,
+        });
+
+        setIsAuth(true);
+        if (sessionStorage.getItem("pre_page")) {
+          navigate(`${sessionStorage.getItem("pre_page")}`);
+        } else {
+          navigate("/");
+        }
+      } catch (error) {
+        setIsAuth(false);
+        const err = error.response
+          ? error.response.data.message
+          : error.message;
+        setLoginError(err);
+      }
+    },
+    [navigate]
+  );
+
+  const logout = useCallback(async () => {
     try {
-      const response = await axios.post("/register", requestBody, {
+      await axios.get("/sanctum/csrf-cookie");
+      const response = await axios.post(
+        "/logout",
+        {},
+        {
+          headers: {
+            Accept: "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          withCredentials: true,
+        }
+      );
+
+      console.log("logout response:", response);
+      setIsAuth(false);
+      navigate("/");
+    } catch (error) {
+      console.error("logout error:", error);
+      setIsAuth(false);
+    }
+  }, [navigate]);
+
+  function productsReducer(state, action) {
+    switch (action.type) {
+      case "FETCH_INIT":
+        return {
+          ...state,
+          loading: true,
+          error: null,
+        };
+      case "FETCH_SUCCESS":
+        return {
+          ...state,
+          loading: false,
+          products: action.payload,
+          error: null,
+        };
+      case "FETCH_FAILURE":
+        return {
+          ...state,
+          loading: false,
+          error: action.payload,
+        };
+      default:
+        return state;
+    }
+  }
+  const initialDataProducts = {
+    products: [],
+    loading: false,
+    error: null,
+  };
+  const [state, dispatch] = useReducer(productsReducer, initialDataProducts);
+
+  const fetchProducts = async (page = 1) => {
+    dispatch({ type: "FETCH_INIT" });
+    try {
+      const response = await axios.get(`/api/products?page=${page}`, {
+        withCredentials: true,
+        headers: { Accept: "application/json" },
+      });
+      dispatch({ type: "FETCH_SUCCESS", payload: response.data.products });
+      console.log(response.data.products);
+    } catch (error) {
+      dispatch({
+        type: "FETCH_FAILURE",
+        payload: error.message || "Error fetching products",
+      });
+      console.error("Error fetching products:", error);
+    }
+  };
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchLatestProducts = async () => {
+    try {
+      const response = await axios.get("/api/products/latest-products", {
+        withCredentials: true,
+        headers: { Accept: "application/json" },
+      });
+      console.log(response.data.products);
+    } catch (error) {
+      console.error("Error fetching latest products:", error);
+    }
+  };
+  const fetchProduct = useCallback(async (id) => {
+    try {
+      if (id) {
+        const response = await axios.get(`/api/products/${id}`, {
+          withCredentials: true,
+          headers: { Accept: "application/json" },
+        });
+        setProductData(response.data.product);
+      }
+      // console.log(response.data.product);
+    } catch (error) {
+      console.error("Error fetching product:", error);
+    }
+  }, []);
+
+  const createProduct = async (
+    title,
+    description,
+    quantity,
+    price,
+    category,
+    image
+  ) => {
+    try {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("price", price);
+      formData.append("category_name[]", category);
+      formData.append("quantity", quantity);
+      if (image) {
+        formData.append("image", image);
+      }
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ": " + pair[1]);
+      }
+      await axios.get("/sanctum/csrf-cookie");
+      await axios.post("/api/products", formData, {
         headers: {
-          "X-XSRF-TOKEN": xsrfToken, // Use the CSRF token directly
+          "Content-Type": "multipart/form-data",
           Accept: "application/json",
         },
+        withCredentials: true,
       });
-      console.log("Registration response:", response);
-      setIsAuth(true);
+
+      // console.log(response.data.message);
+      await fetchProducts();
     } catch (error) {
-      console.error(
-        "Registration error:",
-        error.response ? error.response.data : error.message
-      );
-      setIsAuth(false);
+      console.error("Error creating product:", error);
     }
-    console.log("document.cookie : ", document.cookie);
-  }, []);
-
-  const logIn = useCallback(async (email, password) => {
-    // Prepare the request body
-    const requestBody = new FormData();
-    requestBody.append("email", email);
-    requestBody.append("password", password);
-
-    const xsrfToken = getCookie("XSRF-TOKEN"); // Get the CSRF token from cookies
-
+  };
+  //BUG not work
+  const updateProduct = async (
+    id,
+    title,
+    description,
+    quantity,
+    price,
+    category,
+    image
+  ) => {
     try {
-      const response = await axios.post("/login", requestBody, {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("price", price);
+      formData.append("category_name[]", category);
+      formData.append("quantity", quantity);
+      if (image) {
+        formData.append("image", image);
+      }
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ": " + pair[1]);
+      }
+      await axios.get("/sanctum/csrf-cookie");
+      const response = await axios.patch(`/api/products/${id}`, formData, {
         headers: {
-          "X-XSRF-TOKEN": xsrfToken, // Use the CSRF token directly
+          "Content-Type": "multipart/form-data",
+          Accept: "application/json",
         },
+        withCredentials: true,
       });
-      console.log("Login response:", response);
-      setIsAuth(true);
+
+      console.log(response.data.message);
+      // Optionally refresh product list or navigate
     } catch (error) {
-      setIsAuth(false);
-      console.error(
-        "Login error:",
-        error.response ? error.response.data : error.message
+      console.error("Error updating product:", error);
+    }
+  };
+
+  const deleteProduct = async (id) => {
+    try {
+      const response = await axios.delete(`/api/products/${id}`, {
+        headers: { Accept: "application/json" },
+        withCredentials: true,
+      });
+      console.log(response.data.message);
+      await fetchProducts();
+    } catch (error) {
+      console.error("Error deleting product:", error.response?.data);
+    }
+  };
+  const searchProducts = async (searchTerm) => {
+    try {
+      const response = await axios.get(
+        `/api/products/search?search=${encodeURIComponent(searchTerm)}`,
+        {
+          headers: { Accept: "application/json" },
+          withCredentials: true,
+        }
       );
+      console.log(response.data.products);
+    } catch (error) {
+      if (error.response?.status === 422) {
+        alert(error.response.data.message);
+      } else {
+        console.error("Error searching products:", error);
+      }
+    }
+  };
+
+  const fetchGategories = async () => {
+    try {
+      const response = await axios.get("/api/categories", {
+        withCredentials: true,
+        headers: { Accept: "application/json" },
+      });
+      setCategories(response.data.categories);
+    } catch (error) {
+      console.error("Error fetching latest categories:", error);
+    }
+  };
+
+  const addCategory = async (category) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      await axios.post(
+        "/api/categories",
+        {
+          category_name: category,
+        },
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      await fetchGategories();
+      // setError(null);
+    } catch (err) {
+      if (err.response && err.response.data) {
+        console.log(err.response.data.message);
+      } else {
+        console.log("Failed to add item");
+      }
+    }
+  };
+
+  const updateGategory = async (category_id, category_name) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      await axios.patch(
+        `/api/categories/${category_id}`,
+        { category_name },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      await fetchGategories();
+    } catch (error) {
+      console.error("Failed to update item", error);
+    }
+  };
+
+  const removeGategory = async (category_id) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      await axios.delete(`/api/categories/${category_id}`, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Accept: "application/json",
+        },
+        withCredentials: true,
+      });
+      await fetchGategories();
+    } catch {
+      console.log("Failed to remove item");
+    }
+  };
+  useEffect(() => {
+    fetchGategories();
+  }, []);
+
+  const fetchCurrentUserOrder = async () => {
+    try {
+      const response = await axios.get("/api/orders/my-orders", {
+        withCredentials: true,
+        headers: { Accept: "application/json" },
+      });
+      console.log("response.data cuurent user orders : ", response.data);
+    } catch (error) {
+      console.error("Error fetching current user orders:", error);
+    }
+  };
+  useEffect(() => {
+    fetchCurrentUserOrder();
+  }, []);
+
+  const fetchCart = useCallback(async () => {
+    try {
+      const response = await axios.get("/api/cart");
+      setItems(response.data.items);
+      console.log(response.data.items);
+    } catch (err) {
+      console.log("Failed to load cart");
+      console.log(err);
     }
   }, []);
 
+  const addToCart = async (productId, quantity) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      const response = await axios.post(
+        "/api/cart/add",
+        {
+          product_id: productId,
+          quantity,
+        },
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      setItems(response.data.items);
+      console.log(response.data.items);
+      // setError(null);
+    } catch (err) {
+      if (err.response && err.response.data) {
+        console.log(err.response.data.message);
+      } else {
+        console.log("Failed to add item");
+      }
+    }
+  };
+
+  const removeFromCart = async (itemId) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      const response = await axios.delete(`/api/cart/${itemId}`, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Accept: "application/json",
+        },
+        withCredentials: true,
+      });
+      setItems(response.data.items);
+      console.log(response.data.items);
+    } catch {
+      console.log("Failed to remove item");
+    }
+  };
+
+  const updateItemQuantity = async (itemId, quantity) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      const response = await axios.patch(
+        `/api/cart/${itemId}`,
+        { quantity },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      setItems(response.data.items);
+      console.log("update quantity function:", response.data.items);
+    } catch (error) {
+      console.error("Failed to update item", error);
+    }
+  };
+
+  const [clientSecret, setClientSecret] = useState(null);
+  const [orderId, setOrderId] = useState(null);
+  const createPaymentIntent = async () => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      const response = await axios.post(
+        "/api/checkout/create-payment-intent",
+        {},
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      console.log(response);
+      setClientSecret(response.data.clientSecret);
+      setOrderId(response.data.orderId);
+    } catch (err) {
+      console.log(
+        err.response?.data?.message || "Failed to create payment intent"
+      );
+    }
+  };
+
+  // const handleSubmit = async (event) => {
+  //   event.preventDefault();
+  //   if (!stripe || !elements) return;
+  //   setLoading(true);
+  //   setError(null);
+  //   const cardElement = elements.getElement(CardElement);
+  //   const { error: stripeError, paymentIntent } =
+  //     await stripe.confirmCardPayment(clientSecret, {
+  //       payment_method: {
+  //         card: cardElement,
+  //       },
+  //     });
+  //   if (stripeError) {
+  //     setError(stripeError.message);
+  //     setLoading(false);
+  //   } else if (paymentIntent.status === "succeeded") {
+  //     setPaymentSucceeded(true);
+  //     setLoading(false);
+  //     console.log("Payment succeeded for order:", orderId);
+  //   }
+  // };
+
+  // //get all orders
+  // const getOrders = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await axios.get("/api/orders");
+  //     setOrders(response.data.orders);
+  //     setError(null);
+  //   } catch (err) {
+  //     setError("Failed to load orders");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  // //get order details
+  // const fetchOrderDetails = async (orderId) => {
+  //   try {
+  //     const response = await axios.get(`/api/orders/${orderId}`);
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error("Failed to fetch order details", error);
+  //     throw error;
+  //   }
+  // };
+  // //cancel order
+  // const cancelOrder = async (orderId) => {
+  //   try {
+  //     const response = await axios.put(`/api/orders/${orderId}/cancel`);
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error("Failed to cancel order", error);
+  //     throw error;
+  //   }
+  // };
   console.log("isAuth:", isAuth);
   return (
     <MainContext.Provider
@@ -131,6 +761,38 @@ export const MainProvider = ({ children }) => {
         register,
         isAuth,
         logIn,
+        logout,
+        registerError,
+        clearRegisterError,
+        loginError,
+        clearLoginError,
+        ...state,
+        fetchProducts,
+        categories,
+        addToCart,
+        fetchCart,
+        removeFromCart,
+        updateItemQuantity,
+        items,
+        fetchProduct,
+        productData,
+        clientSecret,
+        orderId,
+        createPaymentIntent,
+        role,
+        getUsers,
+        users,
+        user,
+        updateUserName,
+        updateUserRole,
+        deleteUser,
+        getUser,
+        createProduct,
+        updateProduct,
+        deleteProduct,
+        addCategory,
+        updateGategory,
+        removeGategory,
       }}
     >
       {children}

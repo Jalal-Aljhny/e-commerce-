@@ -18,15 +18,24 @@ const SignUp = () => {
     passwordErrors,
     validateUserName,
     register: SignUp,
+    registerError,
+    clearRegisterError,
   } = use(MainContext);
 
   const onSumbit = (data) => {
-    SignUp(data.username, data.email, data.password, data.password2);
+    SignUp(
+      data.username,
+      data.email,
+      data.password,
+      data.password2,
+      rememberMe
+    );
   };
 
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
   const [showIcon, setShowIcon] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   // const [password , setPassword] = useState()
   const validatePasswordConfirmation = (confirmValue) => {
     const password = watch("password");
@@ -36,12 +45,11 @@ const SignUp = () => {
   return (
     <form
       className={`form ${
-        // signUpErrors.message?.length ||
-        Object.keys(errors).length > 0 ? "error" : ""
+        registerError?.length || Object.keys(errors).length > 0 ? "error" : ""
       }`}
       onSubmit={handleSubmit(onSumbit)}
     >
-      <h2>Sign Up</h2>
+      <h2>Register</h2>
       <div className="form-group">
         <label htmlFor="username">User Name</label>
         <input
@@ -75,13 +83,10 @@ const SignUp = () => {
             required: true,
             validate: validateEmail,
           })}
-          className={
-            // signUpErrors.name == "email" ||
-            errors.email ? "error" : null
-          }
-          //   onChange={() => {
-          //     clearErrors();
-          //   }}
+          className={registerError?.length > 0 || errors.email ? "error" : null}
+          onChange={() => {
+            clearRegisterError();
+          }}
         />
         {errors.email?.type == "required" ? (
           <small className="error__message">Email cannot be empty.</small>
@@ -89,9 +94,9 @@ const SignUp = () => {
         {errors.email?.type == "validate" ? (
           <small className="error__message">This is not a valid email.</small>
         ) : null}
-        {/* {signUpErrors.name == "email" ? (
-          <small className="error__message">{signUpErrors.message[0]}</small>
-        ) : null} */}
+        {registerError?.length > 0 ? (
+          <small className="error__message">{registerError}</small>
+        ) : null}
       </div>
       <div className="form-group">
         <label htmlFor="password">Password</label>
@@ -104,10 +109,7 @@ const SignUp = () => {
             required: true,
             validate: validatePassword,
           })}
-          className={
-            // signUpErrors.name == "password" ||
-            errors.password ? "error" : null
-          }
+          className={errors.password ? "error" : null}
           onFocus={() => {
             setShowIcon(true);
           }}
@@ -124,9 +126,7 @@ const SignUp = () => {
                   ? { top: "35%" }
                   : errors.password?.type == "required"
                   ? { top: "52%" }
-                  : //   : signUpErrors.name == "password"
-                    //   ? { top: "45%" }
-                    null
+                  : null
               }
             />
           ) : (
@@ -140,9 +140,7 @@ const SignUp = () => {
                   ? { top: "35%" }
                   : errors.password?.type == "required"
                   ? { top: "52%" }
-                  : //   : signUpErrors.name == "password"
-                    //   ? { top: "45%" }
-                    null
+                  : null
               }
             />
           )
@@ -163,9 +161,6 @@ const SignUp = () => {
               : null}
           </ul>
         ) : null}
-        {/* {signUpErrors.name == "password" ? (
-          <small className="error__message">{signUpErrors?.message[0]}</small>
-        ) : null} */}
       </div>
 
       <div className="form-group">
@@ -213,6 +208,29 @@ const SignUp = () => {
             Does not match the password field
           </small>
         ) : null}
+      </div>
+      <div
+        className="form-group"
+        style={{
+          flexDirection: "row",
+          gap: "1rem",
+          alignItems: "flex-end",
+        }}
+      >
+        <label htmlFor="remember">Remember me</label>
+        <input
+          type="checkbox"
+          id="remember"
+          checked={rememberMe}
+          onChange={(event) => {
+            setRememberMe(event.target.checked);
+            console.log("remember:", event.target.checked);
+          }}
+          style={{
+            width: "15px",
+            height: "15px",
+          }}
+        />
       </div>
 
       <button className="submit" type="submit">
