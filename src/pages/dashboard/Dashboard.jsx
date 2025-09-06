@@ -156,7 +156,7 @@ const Dashboard = () => {
     setCategory_id(id);
   };
   return (
-    <section>
+    <section style={{ marginBottom: "10rem" }}>
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
