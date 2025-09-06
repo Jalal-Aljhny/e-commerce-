@@ -49,7 +49,9 @@ export const MainProvider = ({ children }) => {
     try {
       await axios.get("/sanctum/csrf-cookie");
       const response = await axios.get("/api/user", { withCredentials: true });
-      setUser(response.data);
+      console.log(" check Auth func :", response);
+
+      setUser(response.data.data);
       setIsAuth(true);
 
       if (sessionStorage.getItem("pre_page")) {
@@ -69,6 +71,7 @@ export const MainProvider = ({ children }) => {
       const response = await axios.get(`/api/users/${userId}`, {
         withCredentials: true,
       });
+      console.log(" check user func :", response);
       if (response.data.user.role.includes("Super Admin")) {
         setRole("super");
       } else {
@@ -575,7 +578,7 @@ export const MainProvider = ({ children }) => {
   useEffect(() => {
     fetchGategories();
   }, []);
-
+  // orders
   const fetchCurrentUserOrder = async () => {
     try {
       const response = await axios.get("/api/orders/my-orders", {
@@ -685,7 +688,6 @@ export const MainProvider = ({ children }) => {
           withCredentials: true,
         }
       );
-      console.log(response);
       setClientSecret(response.data.clientSecret);
       setOrderId(response.data.orderId);
     } catch (err) {
