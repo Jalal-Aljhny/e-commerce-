@@ -8,8 +8,12 @@ import {
   Paper,
   Button,
   Chip,
+  CircularProgress,
+  Backdrop,
 } from "@mui/material";
 import { convertDate } from "../utils/convertDate";
+import { useContext, useEffect, useState } from "react";
+import { MainContext } from "../services/context/MainContext";
 
 // Map status to color for Chip component
 const statusColors = {
@@ -20,26 +24,20 @@ const statusColors = {
 };
 
 const OrdersTable = () => {
-  const orders = [
-    { id: 4, createdAt: "2025-09-04", status: "pending", totalPrice: "401.80" },
-    { id: 5, createdAt: "2025-08-20", status: "shipped", totalPrice: "120.00" },
-    {
-      id: 6,
-      createdAt: "2025-07-15",
-      status: "delivered",
-      totalPrice: "89.99",
-    },
-    {
-      id: 7,
-      createdAt: "2025-06-10",
-      status: "cancelled",
-      totalPrice: "59.50",
-    },
-  ];
+  const { cancelOrder, userOrders, fetchCurrentUserOrder } =
+    useContext(MainContext);
+
+  useEffect(() => {
+    fetchCurrentUserOrder();
+  }, [fetchCurrentUserOrder]);
+  const [loading, setLoading] = useState(false);
+  const [openBackdrop, setOpenBackdrop] = useState(false);
+  const handleCloseBackdrop = () => setOpenBackdrop(false);
+  const handleOpenBackdrop = () => setOpenBackdrop(true);
   return (
     <TableContainer
       component={Paper}
-      sx={{ maxWidth: 900, margin: "auto", mt: 4 }}
+      sx={{ maxWidth: 900, margin: "auto", mt: 15 }}
     >
       <Table>
         <TableHead>
@@ -52,7 +50,7 @@ const OrdersTable = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {orders.map(({ id, createdAt, status, totalPrice }) => (
+          {userOrders.map(({ id, createdAt, status, totalPrice }) => (
             <TableRow key={id}>
               <TableCell>{id}</TableCell>
               <TableCell>{convertDate(createdAt)}</TableCell>
@@ -69,15 +67,22 @@ const OrdersTable = () => {
                 <Button
                   variant="contained"
                   size="small"
-                  //   onClick={() => alert(`View details for order ${id}`)}
-                  disabled
+                  color="warning"
+                  onClick={async () => {
+                    handleOpenBackdrop();
+                    setLoading(true);
+                    await cancelOrder(id);
+                    setLoading(false);
+                    handleCloseBackdrop();
+                  }}
+                  disabled={loading}
                 >
-                  View Details
+                  Cancel Order
                 </Button>
               </TableCell>
             </TableRow>
           ))}
-          {orders.length === 0 && (
+          {userOrders.length === 0 && (
             <TableRow>
               <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                 No orders found.
@@ -86,6 +91,17 @@ const OrdersTable = () => {
           )}
         </TableBody>
       </Table>
+
+      <Backdrop
+        sx={(theme) => ({
+          color: "#fff",
+          zIndex: theme.zIndex.drawer + 1,
+        })}
+        open={openBackdrop}
+        onClick={handleCloseBackdrop}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </TableContainer>
   );
 };
