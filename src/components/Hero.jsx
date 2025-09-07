@@ -6,7 +6,7 @@ export default function HeroSection() {
     <Box
       sx={{
         height: "50vh",
-        backgroundImage: `url('/hero.jpg')`,
+        backgroundImage: `url('/hero.png')`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         display: "flex",
@@ -23,12 +23,15 @@ export default function HeroSection() {
       <Typography
         variant="h2"
         component="h1"
-        sx={{ fontWeight: "bold", mb: 2 }}
+        sx={{ fontWeight: "bold", mb: 2, textShadow: "6px 6px 5px #333" }}
       >
-        Enjoy the most delicious fresh dishes
+        Ecommerce
       </Typography>
-      <Typography variant="h5" sx={{ mb: 4, maxWidth: 500 }}>
-        Authentic recipes, fresh ingredients
+      <Typography
+        variant="h5"
+        sx={{ mb: 4, maxWidth: 500, textShadow: "2px 2px 5px #000" }}
+      >
+        Buy and sell goods and services over the internet .
       </Typography>
       <Button
         variant="contained"
