@@ -8,6 +8,7 @@ import { MainContext } from "../../services/context/MainContext";
 import {
   Alert,
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -17,16 +18,28 @@ import {
   TextField,
 } from "@mui/material";
 import CustomCard from "../../components/Card";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function LabTabs() {
-  const [value, setValue] = useState("1");
+  const { categories, products, isAuth, addToCart } = useContext(MainContext);
+
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  console.log(queryParams.get("name"));
+  const [value, setValue] = useState(queryParams.get("name"));
+
+  function updateSearchParamName(newName) {
+    const url = new URL(window.location);
+    url.searchParams.set("name", newName);
+    window.history.replaceState({}, "", url);
+  }
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
+    updateSearchParamName(newValue);
   };
+
   const [productId, setProductId] = useState("");
-  const { categories, products, isAuth, addToCart } = useContext(MainContext);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const navigate = useNavigate();
   const handleShareClick = () => {
@@ -50,15 +63,18 @@ export default function LabTabs() {
   const handleClose = () => {
     setOpen(false);
   };
+  const [loadingCircle, setLoadingCircle] = useState(false);
   const handleSave = async () => {
+    setLoadingCircle(true);
     await addToCart(productId, dialogValue);
     setOpen(false);
+    setLoadingCircle(false);
     // console.log("quantity : ", dialogValue);
     // console.log("id : ", productId);
   };
   //
   return (
-    <Box sx={{ width: "100%", typography: "body1" }}>
+    <Box sx={{ width: "100%", typography: "body1", marginBottom: "15rem" }}>
       <TabContext value={value}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <TabList onChange={handleChange} aria-label="lab API tabs example">
@@ -66,47 +82,60 @@ export default function LabTabs() {
               <Tab
                 key={category.id}
                 label={category.name}
-                value={(index + 1).toString()}
+                value={categories[index].name}
               />
             ))}
           </TabList>
         </Box>
         {categories.map((category, index) => (
-          <TabPanel value={(index + 1).toString()} key={category.id}>
+          <TabPanel value={categories[index].name} key={category.id}>
             <Grid
               container
               spacing={{ xs: 2, md: 3 }}
               columns={{ xs: 2, sm: 8, md: 12 }}
               className="boxContainer"
             >
-              {products
-                .filter(
-                  (product) => product.categories[0].name == category.name
-                )
-                .map((product, index) => (
-                  <Grid
-                    key={index}
-                    className="box"
-                    size={{ xs: 2, sm: 4, md: 4 }}
-                  >
-                    <CustomCard
-                      id={product.id}
-                      key={product.id}
-                      title={product.title}
-                      categories={product.categories[0].name}
-                      description={product.description}
-                      imageUrl={product.image}
-                      price={product.price}
-                      quantity={product.quantity}
-                      lastModified={product.lastModified}
-                      onShare={handleShareClick}
-                      onOpen={() => {
-                        handleOpen();
-                        setProductId(product.id);
-                      }}
-                    />
-                  </Grid>
-                ))}
+              {products.filter(
+                (product) => product.categories[0].name == category.name
+              ).length > 0 ? (
+                products
+                  .filter(
+                    (product) => product.categories[0].name == category.name
+                  )
+                  .map((product, index) => (
+                    <Grid
+                      key={index}
+                      className="box"
+                      size={{ xs: 2, sm: 4, md: 4 }}
+                    >
+                      <CustomCard
+                        id={product.id}
+                        key={product.id}
+                        title={product.title}
+                        categories={product.categories[0].name}
+                        description={product.description}
+                        imageUrl={product.image}
+                        price={product.price}
+                        quantity={product.quantity}
+                        lastModified={product.lastModified}
+                        onShare={handleShareClick}
+                        onOpen={() => {
+                          handleOpen();
+                          setProductId(product.id);
+                        }}
+                      />
+                    </Grid>
+                  ))
+              ) : (
+                <p
+                  style={{
+                    color: "green",
+                    padding: "2rem",
+                  }}
+                >
+                  No products in this category name !!
+                </p>
+              )}
             </Grid>
           </TabPanel>
         ))}
@@ -147,8 +176,8 @@ export default function LabTabs() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSave} disabled={!dialogValue}>
-            Add
+          <Button onClick={handleSave} disabled={!dialogValue || loadingCircle}>
+            {loadingCircle ? <CircularProgress size={24} /> : "Add"}
           </Button>
         </DialogActions>
       </Dialog>
