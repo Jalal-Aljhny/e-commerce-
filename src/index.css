@@ -1,6 +1,10 @@
 body {
   background-color: white;
   overflow-x: hidden;
+  padding: 0;
+  margin: 0;
+  min-height: 100vh;
+  position: relative;
 }
 html {
   overflow-x: hidden;
@@ -24,16 +28,16 @@ ul {
   list-style: none;
 }
 .boxContainer:hover .box:not(:hover) {
-  -webkit-filter: blur(2px);
-  filter: blur(2px);
+  /* -webkit-filter: blur(2px); */
+  /* filter: blur(2px); */
   transform: scale(0.95);
 }
 .box {
   transition-duration: 300ms;
 }
 .boxContainer:hover .box:hover {
-  -webkit-filter: none;
-  filter: none;
+  /* -webkit-filter: none; */
+  /* filter: none; */
   transform: scale(1);
 }
 .btn {
@@ -116,6 +120,7 @@ ul {
   flex-direction: column;
   align-items: center;
   margin-inline: auto;
+  margin-bottom: 15rem;
   box-shadow: 0px 2px 20px #77777752;
   border-radius: 1rem;
   margin-top: 10vh;
