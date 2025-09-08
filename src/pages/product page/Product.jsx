@@ -23,6 +23,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import CustomCardSkeleton from "../../components/SkeletonCard";
+import ArrowBackSharpIcon from "@mui/icons-material/ArrowBackSharp";
 export default function Product() {
   const { productData, fetchProduct, isAuth } = useContext(MainContext);
   const id = location.pathname.split("/")[2];
@@ -75,6 +76,23 @@ export default function Product() {
         width: "100vw",
       }}
     >
+      <Button
+        variant="contained"
+        color="success"
+        aria-label="update"
+        size="small"
+        sx={{
+          padding: " 0.5rem 1rem",
+          position: "absolute",
+          top: "5rem",
+          left: "2rem",
+        }}
+        onClick={() => {
+          navigate("/products");
+        }}
+      >
+        <ArrowBackSharpIcon /> Back to products
+      </Button>
       {productData ? (
         <Card
           sx={{

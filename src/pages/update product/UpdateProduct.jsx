@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import { MainContext } from "../../services/context/MainContext";
+import { useNavigate } from "react-router-dom";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -30,6 +31,7 @@ const MenuProps = {
 };
 
 const EditProductForm = () => {
+  const navigate = useNavigate();
   const {
     control,
     handleSubmit,
@@ -80,10 +82,12 @@ const EditProductForm = () => {
       image
     );
     setLoading(false);
+    navigate("/products");
+    window.scrollTo(0, 0);
   };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="sm" sx={{ mt: 4, mb: 15 }}>
       <Typography variant="h4" gutterBottom>
         Update Product
       </Typography>

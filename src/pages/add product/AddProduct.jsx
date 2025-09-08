@@ -53,11 +53,6 @@ const AddProductForm = () => {
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState(null);
   const navigate = useNavigate();
-  //   const imageRef = useRef();
-
-  //   const handleImageChange = (event) => {
-  //     setImage(event.target.files[0]);
-  //   };
   const onFormSubmit = async (data) => {
     setLoading(true);
     if (image) {
@@ -78,7 +73,7 @@ const AddProductForm = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="sm" sx={{ mt: 4, mb: 15 }}>
       <Typography variant="h4" gutterBottom>
         Add New Product
       </Typography>

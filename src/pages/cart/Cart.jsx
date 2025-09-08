@@ -24,9 +24,16 @@ import EditIcon from "@mui/icons-material/Edit";
 import { MainContext } from "../../services/context/MainContext";
 import { useNavigate } from "react-router-dom";
 
-export default function CartPage() {
-  const { items, fetchCart, removeFromCart, updateItemQuantity } =
-    useContext(MainContext);
+export default function CartPage({ onClose, checkout }) {
+  const {
+    items,
+    fetchCart,
+    removeFromCart,
+    updateItemQuantity,
+    createPaymentIntent,
+    fetchProduct,
+    productData,
+  } = useContext(MainContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,9 +44,10 @@ export default function CartPage() {
   const [value, setValue] = useState("");
   const [editingItemId, setEditingItemId] = useState(null);
 
-  const handleOpen = (itemId, currentQuantity) => {
-    setEditingItemId(itemId);
+  const handleOpen = async (itemId, currentQuantity, id) => {
+    setEditingItemId(itemId); // cart item id
     setValue(String(currentQuantity));
+    await fetchProduct(id); // product item id
     setOpen(true);
   };
 
@@ -53,13 +61,17 @@ export default function CartPage() {
   const handleCloseBackdrop = () => setOpenBackdrop(false);
   const handleOpenBackdrop = () => setOpenBackdrop(true);
 
+  const [openCheckoutBackdrop, setOpenCheckoutBackdrop] = useState(false);
+  const handleCloseCheckoutBackdrop = () => setOpenCheckoutBackdrop(false);
+  const handleOpenCheckoutBackdrop = () => setOpenCheckoutBackdrop(true);
+
   const totalPrice = items.reduce(
     (sum, item) => sum + item?.product.price * item?.quantity,
     0
   );
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4, height: "80vh" }}>
+    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" gutterBottom>
         Your Cart
       </Typography>
@@ -117,7 +129,7 @@ export default function CartPage() {
                               edge="end"
                               aria-label="update"
                               sx={{ "&:hover": { color: "green" } }}
-                              onClick={() => handleOpen(itemId, quantity)}
+                              onClick={() => handleOpen(itemId, quantity, id)}
                             >
                               <EditIcon />
                             </IconButton>
@@ -165,7 +177,10 @@ export default function CartPage() {
                 value={value}
                 onChange={(e) => {
                   const val = e.target.value;
-                  if (val === "" || /^[0-9]+$/.test(val)) {
+                  if (
+                    val === "" ||
+                    (/^[0-9]+$/.test(val) && val <= productData.quantity)
+                  ) {
                     setValue(val);
                   }
                 }}
@@ -198,6 +213,17 @@ export default function CartPage() {
             <CircularProgress color="inherit" />
           </Backdrop>
 
+          <Backdrop
+            sx={(theme) => ({
+              color: "#fff",
+              zIndex: theme.zIndex.drawer + 1,
+            })}
+            open={openCheckoutBackdrop}
+            // onClick={handleCloseCheckoutBackdrop}
+          >
+            <CircularProgress color="inherit" />
+          </Backdrop>
+
           <Box
             sx={{
               mt: 4,
@@ -209,16 +235,22 @@ export default function CartPage() {
             <Typography variant="h6" fontWeight="bold">
               Total: ${totalPrice.toFixed(2)}
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              onClick={() => {
-                navigate("/checkout");
-              }}
-            >
-              Proceed to Checkout
-            </Button>
+            {checkout ? (
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                onClick={async () => {
+                  handleOpenCheckoutBackdrop();
+                  await createPaymentIntent();
+                  navigate("/checkout");
+                  onClose();
+                  handleCloseCheckoutBackdrop();
+                }}
+              >
+                Checkout
+              </Button>
+            ) : null}
           </Box>
         </>
       )}

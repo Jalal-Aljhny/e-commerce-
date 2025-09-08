@@ -30,7 +30,7 @@ const App = () => {
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/products" element={<Products />} />
         <Route path="/products/:prodcut_id" element={<Product />} />
-        <Route path="/gategories" element={<Categories />} />
+        <Route path="/categories" element={<Categories />} />
 
         {isAuth ? (
           <>
@@ -60,8 +60,10 @@ const App = () => {
               element={<EditProductForm />}
             />
           </>
-        ) : (
+        ) : isAuth ? (
           <Route path="/dashboard" element={<SkeletonDashboard />} />
+        ) : (
+          <Route path="/dashboard" element={<Navigate to={"/register"} />} />
         )}
         <Route path="*" element={<NotFound />} />
       </Routes>

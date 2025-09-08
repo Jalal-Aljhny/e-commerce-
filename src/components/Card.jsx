@@ -11,6 +11,7 @@ import { red } from "@mui/material/colors";
 import ShareIcon from "@mui/icons-material/Share";
 import Button from "@mui/material/Button";
 import { convertDate } from "../utils/convertDate";
+import { useNavigate } from "react-router-dom";
 export default function CustomCard({
   id,
   title,
@@ -23,13 +24,14 @@ export default function CustomCard({
   onShare,
   onOpen,
 }) {
+  const navigate = useNavigate();
   return (
     <Card
       sx={{
         maxWidth: 345,
         padding: "1rem",
         borderRadius: "1rem",
-        height: "480px",
+        minHeight: "500px",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -38,7 +40,7 @@ export default function CustomCard({
       <CardHeader
         avatar={
           <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-            {categories}
+            {/* {categories} */}
           </Avatar>
         }
         title={title}
@@ -60,11 +62,47 @@ export default function CustomCard({
         alt="Meal image"
       />
       <CardContent>
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          {description}
-        </Typography>
-        <Typography
-          sx={{
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            marginBottom: "1rem",
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              color: "text.secondary",
+              fontSize: "1rem",
+              lineBreak: "anywhere",
+              maxHeight: "150px",
+              overflowY: "auto",
+            }}
+          >
+            {description}
+          </Typography>
+          <Typography
+            sx={{
+              padding: "0.25rem 0.75rem",
+              borderRadius: "2rem",
+              border: "1px solid #3335",
+              width: "fit-content",
+              // marginBlock: "1rem",
+              transitionDuration: 300,
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: "#333",
+                color: "#fff",
+              },
+            }}
+            onClick={() => navigate(`/categories?name=${categories}`)}
+          >
+            {categories}
+          </Typography>
+        </div>
+        <div
+          style={{
             display: "flex",
             justifyContent: "space-between",
           }}
@@ -88,7 +126,7 @@ export default function CustomCard({
           >
             quantity : {quantity}
           </Typography>
-        </Typography>
+        </div>
       </CardContent>
       <CardActions disableSpacing>
         <IconButton

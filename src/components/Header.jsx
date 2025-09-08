@@ -10,35 +10,23 @@ import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
-import AdbIcon from "@mui/icons-material/Adb";
 import Logo from "./Logo";
 import { useContext, useState } from "react";
 import { MainContext } from "../services/context/MainContext";
 import { NavLink, useNavigate } from "react-router-dom";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import Accordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import Badge from "@mui/material/Badge";
-const pages = ["Products", "Gategories", "Contact us"];
+import { Popover } from "@mui/material";
+import CartPage from "../pages/cart/Cart";
+const pages = ["Products", "Categories", "Contact us"];
 const settings = ["Dashboard", "Logout"];
 
 function Header() {
   const [anchorElNav, setAnchorElNav] = useState(null);
   const [anchorElUser, setAnchorElUser] = useState(null);
-  const { isAuth, logout, items } = useContext(MainContext);
+  const { isAuth, logout, items, categories } = useContext(MainContext);
   const navigate = useNavigate();
-  // const [open, setOpen] = React.useState(false);
 
-  // const handleClickOpen = () => {
-  //   setOpen(true);
-  // };
-
-  // const handleClose = () => {
-  //   setOpen(false);
-  // };
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
   };
@@ -54,6 +42,18 @@ function Header() {
     setAnchorElUser(null);
   };
 
+  //
+  const [anchorEl, setAnchorEl] = useState(null);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  const open = Boolean(anchorEl);
+  const id = open ? "simple-popover" : undefined;
+  //
+
   return (
     <AppBar
       position="static"
@@ -66,23 +66,7 @@ function Header() {
     >
       <Container maxWidth="xl">
         <Toolbar disableGutters sx={{ display: "flex", alignItems: "center" }}>
-          {/* <Typography
-            variant="h6"
-            noWrap
-            component="a"
-            href="#app-bar-with-responsive-menu"
-            sx={{
-              mr: 2,
-              display: { xs: "none", md: "flex" },
-              fontFamily: "monospace",
-              fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "inherit",
-              textDecoration: "none",
-            }}
-          > */}
           <Logo />
-          {/* </Typography> */}
 
           <Box
             sx={{
@@ -123,7 +107,11 @@ function Header() {
                   <Typography
                     sx={{ textAlign: "center" }}
                     onClick={() => {
-                      navigate(`/${page.toLocaleLowerCase().split(" ")[0]}`);
+                      if (page.toLocaleLowerCase() == "categories") {
+                        navigate(`/categories?name=${categories[0].name}`);
+                      } else {
+                        navigate(`/${page.toLocaleLowerCase().split(" ")[0]}`);
+                      }
                     }}
                   >
                     {page}
@@ -177,9 +165,12 @@ function Header() {
             {pages.map((page) => (
               <Button
                 key={page}
-                // onClick={}
                 onClick={() => {
-                  navigate(`/${page.toLocaleLowerCase().split(" ")[0]}`);
+                  if (page.toLocaleLowerCase() == "categories") {
+                    navigate(`/categories?name=${categories[0].name}`);
+                  } else {
+                    navigate(`/${page.toLocaleLowerCase().split(" ")[0]}`);
+                  }
                   handleCloseNavMenu();
                 }}
                 sx={{
@@ -224,9 +215,11 @@ function Header() {
                   color="success"
                 >
                   <IconButton
-                    onClick={() => {
-                      navigate("/cart");
-                    }}
+                    // onClick={() => {
+                    //   navigate("/cart");
+                    // }}
+                    onClick={handleClick}
+                    aria-describedby={id}
                   >
                     <ShoppingCartIcon />
                   </IconButton>
@@ -366,6 +359,21 @@ function Header() {
           </Box>
         </Toolbar>
       </Container>
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+        sx={{
+          transform: "translate(-15px)",
+        }}
+      >
+        <CartPage onClose={handleClose} checkout={true} />
+      </Popover>
     </AppBar>
   );
 }

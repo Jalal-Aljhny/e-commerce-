@@ -3,7 +3,7 @@ import Tab from "@mui/material/Tab";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { MainContext } from "../../services/context/MainContext";
 import {
   Alert,
@@ -25,7 +25,6 @@ export default function LabTabs() {
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  console.log(queryParams.get("name"));
   const [value, setValue] = useState(queryParams.get("name"));
 
   function updateSearchParamName(newName) {
@@ -40,6 +39,13 @@ export default function LabTabs() {
   };
 
   const [productId, setProductId] = useState("");
+  const [maxQuantity, setMaxQuantity] = useState();
+  useEffect(() => {
+    if (productId) {
+      let product = products.find((p) => p.id == productId);
+      setMaxQuantity(product.quantity);
+    }
+  }, [productId, products]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const navigate = useNavigate();
   const handleShareClick = () => {
@@ -53,13 +59,15 @@ export default function LabTabs() {
   //
   const [open, setOpen] = useState(false);
   const [dialogValue, setDialgoValue] = useState("");
-  const handleOpen = () => {
+  const handleOpen = async () => {
+    setDialgoValue("");
     if (!isAuth) {
       navigate("/register");
     } else {
       setOpen(true);
     }
   };
+
   const handleClose = () => {
     setOpen(false);
   };
@@ -69,8 +77,6 @@ export default function LabTabs() {
     await addToCart(productId, dialogValue);
     setOpen(false);
     setLoadingCircle(false);
-    // console.log("quantity : ", dialogValue);
-    // console.log("id : ", productId);
   };
   //
   return (
@@ -120,8 +126,8 @@ export default function LabTabs() {
                         lastModified={product.lastModified}
                         onShare={handleShareClick}
                         onOpen={() => {
-                          handleOpen();
                           setProductId(product.id);
+                          handleOpen();
                         }}
                       />
                     </Grid>
@@ -152,7 +158,7 @@ export default function LabTabs() {
           variant="filled"
           sx={{ width: "100%" }}
         >
-          Link meal card copied !
+          Product link copied !
         </Alert>
       </Snackbar>
       <Dialog open={open} onClose={handleClose}>
@@ -168,7 +174,7 @@ export default function LabTabs() {
             value={dialogValue}
             onChange={(e) => {
               const val = e.target.value;
-              if (val === "" || /^[0-9]+$/.test(val)) {
+              if (val === "" || (/^[0-9]+$/.test(val) && val <= maxQuantity)) {
                 setDialgoValue(val);
               }
             }}

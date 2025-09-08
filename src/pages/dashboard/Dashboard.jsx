@@ -8,6 +8,7 @@ import {
   Backdrop,
   Box,
   Button,
+  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -38,6 +39,15 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
+import OrdersTable from "../../components/Orders";
+import { convertDate } from "../../utils/convertDate";
+
+const statusColors = {
+  pending: "warning",
+  shipped: "info",
+  delivered: "success",
+  cancelled: "error",
+};
 
 const Dashboard = () => {
   const {
@@ -54,8 +64,13 @@ const Dashboard = () => {
     addCategory,
     updateGategory,
     removeGategory,
+    allOrders,
+    getOrders,
+    cancelOrder,
   } = useContext(MainContext);
-
+  useEffect(() => {
+    getOrders();
+  }, [getOrders]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const handleUpdateName = async () => {
@@ -156,7 +171,7 @@ const Dashboard = () => {
     setCategory_id(id);
   };
   return (
-    <section style={{ marginBottom: "10rem" }}>
+    <section style={{ marginBottom: "15rem" }}>
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
@@ -462,6 +477,103 @@ const Dashboard = () => {
                 </Fragment>
               ))}
             </List>
+          </TableContainer>
+        </AccordionDetails>
+      </Accordion>
+
+      <Accordion>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel4-content"
+          id="panel4-header"
+        >
+          <Typography component="span">My orders </Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <TableContainer
+            component={Paper}
+            sx={{ maxWidth: 900, margin: "auto", mt: 4 }}
+          >
+            <OrdersTable />
+          </TableContainer>
+        </AccordionDetails>
+      </Accordion>
+
+      <Accordion>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel5-content"
+          id="panel5-header"
+        >
+          <Typography component="span">All orders </Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <TableContainer
+            component={Paper}
+            sx={{ maxWidth: 900, margin: "auto", mt: 4 }}
+          >
+            <TableContainer
+              component={Paper}
+              sx={{ maxWidth: 900, margin: "auto", mt: 15 }}
+            >
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Order ID</TableCell>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Total Price</TableCell>
+                    <TableCell align="center">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {allOrders.map(({ id, createdAt, status, totalPrice }) => (
+                    <TableRow key={id}>
+                      <TableCell>{id}</TableCell>
+                      <TableCell>{convertDate(createdAt)}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={
+                            status.charAt(0).toUpperCase() + status.slice(1)
+                          }
+                          color={statusColors[status] || "default"}
+                          variant="outlined"
+                          sx={{ fontWeight: "bold" }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        ${parseFloat(totalPrice).toFixed(2)}
+                      </TableCell>
+                      <TableCell align="center">
+                        <Button
+                          variant="contained"
+                          size="small"
+                          color="warning"
+                          disabled
+                          onClick={async () => {
+                            handleOpenBackdrop();
+                            setLoading(true);
+                            await cancelOrder(id);
+                            setLoading(false);
+                            handleCloseBackdrop();
+                          }}
+                          // disabled={loading}
+                        >
+                          Cancel Order
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {allOrders.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                        No orders found.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </TableContainer>
         </AccordionDetails>
       </Accordion>

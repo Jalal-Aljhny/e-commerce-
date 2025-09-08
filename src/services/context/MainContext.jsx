@@ -14,6 +14,10 @@ axios.defaults.baseURL = "https://localhost:8000";
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
 
+const apiStripe = axios.create({
+  baseURL: "https://api.stripe.com/v1",
+});
+
 // const getCookie = (name) => {
 //   const value = `; ${document.cookie}`;
 //   const parts = value.split(`; ${name}=`);
@@ -72,6 +76,7 @@ export const MainProvider = ({ children }) => {
         withCredentials: true,
       });
       console.log(" check user func :", response);
+      console.log("role : ", response.data.user.role);
       if (response.data.user.role.includes("Super Admin")) {
         setRole("super");
       } else {
@@ -83,7 +88,6 @@ export const MainProvider = ({ children }) => {
       setRole(null);
     }
   }, []);
-
   const [users, setUsers] = useState([]);
   const getUsers = useCallback(async () => {
     try {
@@ -431,7 +435,6 @@ export const MainProvider = ({ children }) => {
       console.error("Error creating product:", error);
     }
   };
-  //BUG not work
   const updateProduct = async (
     id,
     title,
@@ -448,6 +451,7 @@ export const MainProvider = ({ children }) => {
       formData.append("price", price);
       formData.append("category_name[]", category);
       formData.append("quantity", quantity);
+      formData.append("_method", "patch");
       if (image) {
         formData.append("image", image);
       }
@@ -455,7 +459,7 @@ export const MainProvider = ({ children }) => {
         console.log(pair[0] + ": " + pair[1]);
       }
       await axios.get("/sanctum/csrf-cookie");
-      const response = await axios.patch(`/api/products/${id}`, formData, {
+      await axios.post(`/api/products/${id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Accept: "application/json",
@@ -463,7 +467,8 @@ export const MainProvider = ({ children }) => {
         withCredentials: true,
       });
 
-      console.log(response.data.message);
+      await fetchProducts();
+
       // Optionally refresh product list or navigate
     } catch (error) {
       console.error("Error updating product:", error);
@@ -482,6 +487,7 @@ export const MainProvider = ({ children }) => {
       console.error("Error deleting product:", error.response?.data);
     }
   };
+  // TODO
   const searchProducts = async (searchTerm) => {
     try {
       const response = await axios.get(
@@ -579,20 +585,39 @@ export const MainProvider = ({ children }) => {
     fetchGategories();
   }, []);
   // orders
-  const fetchCurrentUserOrder = async () => {
+  const [allOrders, setAllOrders] = useState([]);
+  const [userOrders, setUserOrders] = useState([]);
+  const fetchCurrentUserOrder = useCallback(async () => {
     try {
       const response = await axios.get("/api/orders/my-orders", {
         withCredentials: true,
         headers: { Accept: "application/json" },
       });
-      console.log("response.data cuurent user orders : ", response.data);
+      setUserOrders(response.data.orders);
     } catch (error) {
       console.error("Error fetching current user orders:", error);
     }
-  };
-  useEffect(() => {
-    fetchCurrentUserOrder();
   }, []);
+  const getOrders = useCallback(async () => {
+    try {
+      const response = await axios.get("/api/orders");
+      setAllOrders(response.data.orders);
+    } catch (err) {
+      console.log("Failed to load orders", err);
+    }
+  }, []);
+  const cancelOrder = useCallback(
+    async (id) => {
+      try {
+        await axios.get("/sanctum/csrf-cookie");
+        await axios.patch(`/api/orders/${id}`);
+        await getOrders();
+      } catch (err) {
+        console.log("Failed to load orders", err);
+      }
+    },
+    [getOrders]
+  );
 
   const fetchCart = useCallback(async () => {
     try {
@@ -696,62 +721,16 @@ export const MainProvider = ({ children }) => {
       );
     }
   };
+  // console.log("clientSecret : ", clientSecret?.split("_secret_")[0]);
+  // console.log("orderId : ", orderId);
+  const handleSubmitPayment = async () => {
+    await axios.get("/sanctum/csrf-cookie");
+    const response = await apiStripe.post(
+      `/payment_intents/${clientSecret?.split("_secret_")[0]}/confirm`
+    );
+    return response;
+  };
 
-  // const handleSubmit = async (event) => {
-  //   event.preventDefault();
-  //   if (!stripe || !elements) return;
-  //   setLoading(true);
-  //   setError(null);
-  //   const cardElement = elements.getElement(CardElement);
-  //   const { error: stripeError, paymentIntent } =
-  //     await stripe.confirmCardPayment(clientSecret, {
-  //       payment_method: {
-  //         card: cardElement,
-  //       },
-  //     });
-  //   if (stripeError) {
-  //     setError(stripeError.message);
-  //     setLoading(false);
-  //   } else if (paymentIntent.status === "succeeded") {
-  //     setPaymentSucceeded(true);
-  //     setLoading(false);
-  //     console.log("Payment succeeded for order:", orderId);
-  //   }
-  // };
-
-  // //get all orders
-  // const getOrders = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const response = await axios.get("/api/orders");
-  //     setOrders(response.data.orders);
-  //     setError(null);
-  //   } catch (err) {
-  //     setError("Failed to load orders");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-  // //get order details
-  // const fetchOrderDetails = async (orderId) => {
-  //   try {
-  //     const response = await axios.get(`/api/orders/${orderId}`);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error("Failed to fetch order details", error);
-  //     throw error;
-  //   }
-  // };
-  // //cancel order
-  // const cancelOrder = async (orderId) => {
-  //   try {
-  //     const response = await axios.put(`/api/orders/${orderId}/cancel`);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error("Failed to cancel order", error);
-  //     throw error;
-  //   }
-  // };
   console.log("isAuth:", isAuth);
   return (
     <MainContext.Provider
@@ -795,6 +774,12 @@ export const MainProvider = ({ children }) => {
         addCategory,
         updateGategory,
         removeGategory,
+        cancelOrder,
+        allOrders,
+        userOrders,
+        fetchCurrentUserOrder,
+        getOrders,
+        handleSubmitPayment,
       }}
     >
       {children}
