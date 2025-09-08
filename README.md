@@ -1,3 +1,14 @@
+### Summary
+
+This website is a full-featured e-commerce platform with:
+
+    User authentication and role-based access.
+    Product and category management.
+    Shopping cart and order management.
+    Stripe payment integration.
+    Robust validation and error handling.
+    Centralized state management via React Context.
+
 # Main Features & Properties of Your Website
 
 1. ## Authentication & User Management
@@ -43,14 +54,3 @@
    Uses Axios with CSRF protection and credentials for secure API calls.
    Navigation control with React Router’s useNavigate.
    Context provider exposes all these states and functions to the app.
-
-### Summary
-
-This website is a full-featured e-commerce platform with:
-
-    User authentication and role-based access.
-    Product and category management.
-    Shopping cart and order management.
-    Stripe payment integration.
-    Robust validation and error handling.
-    Centralized state management via React Context.
