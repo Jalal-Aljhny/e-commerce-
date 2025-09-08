@@ -9,7 +9,7 @@ This website is a full-featured e-commerce platform with:
     Robust validation and error handling.
     Centralized state management via React Context.
 
-# Main Features & Properties of Your Website
+# Main Features & Properties of This Website
 
 1. ## Authentication & User Management
 
