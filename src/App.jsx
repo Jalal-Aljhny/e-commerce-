@@ -19,6 +19,7 @@ import SkeletonDashboard from "./components/SkeletonDashboard";
 import Dashboard from "./pages/dashboard/Dashboard";
 import AddProductForm from "./pages/add product/AddProduct";
 import EditProductForm from "./pages/update product/UpdateProduct";
+import EditProfilePage from "./pages/profile/EditProfile";
 
 const App = () => {
   const { isAuth, role } = useContext(MainContext);
@@ -37,6 +38,10 @@ const App = () => {
             <Route path="/register" element={<Navigate to={"/"} />} />
             <Route path="/login" element={<Navigate to={"/"} />} />
             <Route path="/profile" element={<Profile />} />
+            <Route
+              path="/edit-profile/:profile_id"
+              element={<EditProfilePage />}
+            />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<Checkout />} />
           </>
@@ -45,6 +50,10 @@ const App = () => {
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile" element={<Navigate to={"/register"} />} />
+            <Route
+              path="/edit-profile/profile_id"
+              element={<Navigate to={"/register"} />}
+            />
             <Route path="/cart" element={<Navigate to={"/register"} />} />
             <Route path="/checkout" element={<Navigate to={"/register"} />} />
           </>
