@@ -7,16 +7,13 @@ import {
 } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useStripe } from "@stripe/react-stripe-js";
 
 axios.defaults.xsrfCookieName = "XSRF-TOKEN";
 axios.defaults.xsrfHeaderName = "X-XSRF-TOKEN";
 axios.defaults.baseURL = "https://localhost:8000";
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
-
-const apiStripe = axios.create({
-  baseURL: "https://api.stripe.com/v1",
-});
 
 // const getCookie = (name) => {
 //   const value = `; ${document.cookie}`;
@@ -723,15 +720,36 @@ export const MainProvider = ({ children }) => {
   };
   // console.log("clientSecret : ", clientSecret?.split("_secret_")[0]);
   // console.log("orderId : ", orderId);
+
+  //
+  // const handleSubmitPayment = async () => {
+  //   await axios.get("/sanctum/csrf-cookie");
+  //   const response = await apiStripe.post(
+  //     `/payment_intents/${clientSecret?.split("_secret_")[0]}/confirm`
+  //   );
+  //   return response;
+  // };
+  const stripe = useStripe();
+  const [stripeSuccess, setStripeSuccess] = useState(false);
+  const [stripeError, setStripeError] = useState(null);
   const handleSubmitPayment = async () => {
     await axios.get("/sanctum/csrf-cookie");
-    const response = await apiStripe.post(
-      `/payment_intents/${clientSecret?.split("_secret_")[0]}/confirm`
-    );
-    return response;
+    try {
+      const response = await stripe.confirmCardPayment(clientSecret, {
+        // payment_method: {
+        //   card: "pm_card_visa",
+        // },
+
+        payment_method: "pm_card_visa",
+      });
+      console.log(response);
+      setStripeSuccess(true);
+    } catch (err) {
+      setStripeSuccess(false);
+      setStripeError(err.message);
+    }
   };
 
-  console.log("isAuth:", isAuth);
   return (
     <MainContext.Provider
       value={{
@@ -780,6 +798,8 @@ export const MainProvider = ({ children }) => {
         fetchCurrentUserOrder,
         getOrders,
         handleSubmitPayment,
+        stripeSuccess,
+        stripeError,
       }}
     >
       {children}

@@ -5,14 +5,19 @@ import App from "./App.jsx";
 import { MainProvider } from "./services/context/MainContext.jsx";
 import { BrowserRouter } from "react-router-dom";
 import { CookiesProvider } from "react-cookie";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 createRoot(document.getElementById("root")).render(
   // <StrictMode>
   <CookiesProvider>
     <BrowserRouter>
-      <MainProvider>
-        <App />
-      </MainProvider>
+      <Elements stripe={stripePromise}>
+        <MainProvider>
+          <App />
+        </MainProvider>
+      </Elements>
     </BrowserRouter>
   </CookiesProvider>
   // </StrictMode>

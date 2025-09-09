@@ -12,8 +12,8 @@ import { MainContext } from "../../services/context/MainContext";
 
 export default function Checkout() {
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const { handleSubmitPayment } = useContext(MainContext);
+  const { handleSubmitPayment, stripeSuccess, stripeError } =
+    useContext(MainContext);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -23,7 +23,6 @@ export default function Checkout() {
 
   const [cardNumber, setCardNumber] = useState("");
   const [error, setError] = useState(false);
-  const [errorStripe, setErrorStripe] = useState(false);
   const handleChange = (e) => {
     const val = e.target.value;
     if (/^\d{0,16}$/.test(val)) {
@@ -74,12 +73,12 @@ export default function Checkout() {
             {error}
           </Alert>
         )}
-        {errorStripe && (
+        {stripeError && (
           <Alert severity="error" sx={{ mb: 2 }}>
-            {errorStripe}
+            {stripeError}
           </Alert>
         )}
-        {success && (
+        {stripeSuccess && (
           <Alert severity="success" sx={{ mb: 2 }}>
             Payment successful! Thank you.
           </Alert>
@@ -88,20 +87,12 @@ export default function Checkout() {
           type="submit"
           variant="contained"
           color="primary"
-          disabled={!cardNumber || loading || success}
+          disabled={!cardNumber || loading || stripeSuccess}
           sx={{ marginInline: "auto" }}
           onClick={async () => {
             setLoading(true);
-            await handleSubmitPayment()
-              .then(() => {
-                setSuccess(true);
-                setLoading(false);
-              })
-              .catch((err) => {
-                setSuccess(false);
-                setErrorStripe(err.message);
-                setLoading(false);
-              });
+            await handleSubmitPayment();
+            setLoading(false);
           }}
         >
           {loading ? <CircularProgress size={24} /> : "Place my order"}
