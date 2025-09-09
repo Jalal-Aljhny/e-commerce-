@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { use, useState } from "react";
 import { MainContext } from "../services/context/MainContext";
+import { Box } from "@mui/material";
 
 const SignUp = () => {
   const {
@@ -28,10 +29,15 @@ const SignUp = () => {
       data.email,
       data.password,
       data.password2,
-      rememberMe
+      rememberMe,
+      // image,
+      data.bio,
+      data.city,
+      data.country,
+      data.phone
     );
   };
-
+  // const [image, setImage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
   const [showIcon, setShowIcon] = useState(false);
@@ -162,7 +168,6 @@ const SignUp = () => {
           </ul>
         ) : null}
       </div>
-
       <div className="form-group">
         <label htmlFor="password2">Password Confirm</label>
         <input
@@ -209,6 +214,60 @@ const SignUp = () => {
           </small>
         ) : null}
       </div>
+
+      <div className="form-group">
+        <label htmlFor="phone">Phone</label>
+        <input
+          type="text"
+          id="phone"
+          placeholder="Phone number"
+          {...register("phone")}
+          defaultValue="" // example default
+        />
+      </div>
+      <div className="form-group">
+        <label htmlFor="country">Country</label>
+        <input
+          type="text"
+          id="country"
+          placeholder="Country"
+          {...register("country")}
+          defaultValue=""
+        />
+      </div>
+      <div className="form-group">
+        <label htmlFor="city">City</label>
+        <input
+          type="text"
+          id="city"
+          placeholder="City"
+          {...register("city")}
+          defaultValue=""
+        />
+      </div>
+      {/* <div className="form-group">
+        <label htmlFor="image">ٍSelect Image </label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            setImage(e.target.files[0]);
+          }}
+        />
+        {image && (
+          <Box
+            component="img"
+            src={URL.createObjectURL(image)}
+            alt="Preview"
+            sx={{
+              maxWidth: "100%",
+              maxHeight: 200,
+              borderRadius: 1,
+              ml: 2,
+            }}
+          />
+        )}
+      </div> */}
       <div
         className="form-group"
         style={{
@@ -232,7 +291,16 @@ const SignUp = () => {
           }}
         />
       </div>
-
+      <div className="form-group">
+        <label htmlFor="bio">Bio</label>
+        <textarea
+          id="bio"
+          placeholder="Tell us about yourself"
+          {...register("bio")}
+          defaultValue={null}
+          style={{ padding: "1rem" }}
+        />
+      </div>
       <button className="submit" type="submit">
         Register
       </button>
