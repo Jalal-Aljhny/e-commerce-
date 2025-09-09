@@ -2,8 +2,11 @@ import React, { useContext, useEffect, useState } from "react";
 import { MainContext } from "../../services/context/MainContext";
 import Card from "../../components/Card";
 import CustomCardSkeleton from "../../components/SkeletonCard";
+import CloseIcon from "@mui/icons-material/Close";
 import {
   Alert,
+  Backdrop,
+  Box,
   Button,
   CircularProgress,
   Dialog,
@@ -11,13 +14,23 @@ import {
   DialogContent,
   DialogTitle,
   Grid,
+  IconButton,
   Snackbar,
   TextField,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 const Products = () => {
-  const { products, loading, error, isAuth, addToCart } =
-    useContext(MainContext);
+  const {
+    products,
+    loading,
+    error,
+    isAuth,
+    addToCart,
+    searchProducts,
+    srchProducts,
+    mode,
+    handleMode,
+  } = useContext(MainContext);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const handleShareClick = () => {
     setSnackbarOpen(true);
@@ -59,8 +72,63 @@ const Products = () => {
     setLoadingCircle(false);
   };
   //
+  const [query, setQuery] = useState("");
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setQuery("");
+        handleMode("normal");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleMode]);
+  const [openBackdrop, setOpenBackdrop] = useState(false);
+  const handleCloseBackdrop = () => setOpenBackdrop(false);
+  const handleOpenBackdrop = () => setOpenBackdrop(true);
+
+  console.log("srchProducts : ", srchProducts);
   return (
     <section style={{ marginBottom: "15rem" }}>
+      {mode == "search" ? (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            maxWidth: "80%",
+            marginInline: "auto",
+          }}
+        >
+          <TextField
+            variant="outlined"
+            size="small"
+            placeholder="Search..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            sx={{ flexGrow: 1 }}
+          />
+          <Button
+            variant="contained"
+            onClick={async () => {
+              handleOpenBackdrop();
+              await searchProducts(query);
+              handleCloseBackdrop();
+            }}
+          >
+            Search
+          </Button>
+          <IconButton
+            aria-label="clear search"
+            onClick={() => {
+              setQuery("");
+              handleMode("normal");
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
+      ) : null}
       {loading ? (
         <Grid
           container
@@ -75,7 +143,46 @@ const Products = () => {
             </Grid>
           ))}
         </Grid>
-      ) : !loading && !error && products?.length ? (
+      ) : mode == "search" && srchProducts?.length > 0 ? (
+        <Grid
+          container
+          spacing={{ xs: 2, md: 3 }}
+          columns={{ xs: 2, sm: 8, md: 12 }}
+          className="boxContainer"
+        >
+          {srchProducts.map((product, index) => (
+            <Grid key={index} className="box" size={{ xs: 2, sm: 4, md: 4 }}>
+              <Card
+                id={product.id}
+                key={product.id}
+                title={product.title}
+                categories={product.categories[0].name}
+                description={product.description}
+                imageUrl={product.image}
+                price={product.price}
+                quantity={product.quantity}
+                lastModified={product.lastModified}
+                onShare={handleShareClick}
+                onOpen={() => {
+                  handleOpen();
+                  setProductId(product.id);
+                }}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      ) : mode == "search" && srchProducts?.length == 0 ? (
+        <small
+          className="error"
+          style={{
+            display: "block",
+            marginInline: "auto",
+            marginBlock: "2rem",
+          }}
+        >
+          No products found contains this title ...!
+        </small>
+      ) : !loading && !error && products?.length && mode == "normal" ? (
         // products.map((product) => (
         // <Card
         //   key={product.id}
@@ -122,18 +229,21 @@ const Products = () => {
         </Grid>
       ) : // categories, description, title, imageUrl;
 
-      !loading && error ? (
-        <small className="error">
+      !loading && error && mode == "normal" ? (
+        <small
+          className="error"
+          style={{
+            display: "block",
+            marginInline: "auto",
+            marginBlock: "2rem",
+          }}
+        >
           Error when getting products !!!... Return to home page ...
         </small>
+      ) : !loading && !error && !products?.length && mode == "normal" ? (
+        <small className="error">No products available !</small>
       ) : null}
-      {/* <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={5000}
-        onClose={handleSnackbarClose}
-        message="Link meal card copied ! "
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-      /> */}
+
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={5000}
@@ -177,6 +287,15 @@ const Products = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Backdrop
+        sx={(theme) => ({
+          color: "#fff",
+          zIndex: theme.zIndex.drawer + 1,
+        })}
+        open={openBackdrop}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </section>
   );
 };

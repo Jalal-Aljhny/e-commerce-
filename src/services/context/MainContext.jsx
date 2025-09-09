@@ -129,6 +129,27 @@ export const MainProvider = ({ children }) => {
     }
   }, [user, checkUser]);
 
+  const updateUserData = async (userId, data, image) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      await axios.patch(
+        `/api/users/${userId}`,
+        { ...data, image },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      // setUsers(response.data.users);
+      // console.log("users : ", response.data.users);
+    } catch (error) {
+      console.error("Failed to update item", error);
+    }
+  };
+
   const updateUserName = async (userId, newName) => {
     try {
       await axios.get("/sanctum/csrf-cookie");
@@ -222,7 +243,18 @@ export const MainProvider = ({ children }) => {
   }, []);
 
   const register = useCallback(
-    async (name, email, password, password2, rememberMe) => {
+    async (
+      name,
+      email,
+      password,
+      password2,
+      rememberMe,
+
+      bio,
+      city,
+      country,
+      phone
+    ) => {
       try {
         await axios.get("/sanctum/csrf-cookie");
         // Prepare form data
@@ -232,6 +264,11 @@ export const MainProvider = ({ children }) => {
         formData.append("password", password);
         formData.append("password_confirmation", password2);
         formData.append("remember", rememberMe);
+        // formData.append("remember", image);
+        formData.append("remember", bio);
+        formData.append("remember", city);
+        formData.append("remember", country);
+        formData.append("remember", phone);
 
         await axios.post("/register", formData, {
           headers: {
@@ -370,17 +407,17 @@ export const MainProvider = ({ children }) => {
     fetchProducts();
   }, []);
 
-  const fetchLatestProducts = async () => {
-    try {
-      const response = await axios.get("/api/products/latest-products", {
-        withCredentials: true,
-        headers: { Accept: "application/json" },
-      });
-      console.log(response.data.products);
-    } catch (error) {
-      console.error("Error fetching latest products:", error);
-    }
-  };
+  // const fetchLatestProducts = async () => {
+  //   try {
+  //     const response = await axios.get("/api/products/latest-products", {
+  //       withCredentials: true,
+  //       headers: { Accept: "application/json" },
+  //     });
+  //     console.log(response.data.products);
+  //   } catch (error) {
+  //     console.error("Error fetching latest products:", error);
+  //   }
+  // };
   const fetchProduct = useCallback(async (id) => {
     try {
       if (id) {
@@ -484,7 +521,11 @@ export const MainProvider = ({ children }) => {
       console.error("Error deleting product:", error.response?.data);
     }
   };
-  // TODO
+  const [srchProducts, setSrchProducts] = useState([]);
+  const [mode, setMode] = useState("normal");
+  const handleMode = useCallback((mode) => {
+    setMode(mode);
+  }, []);
   const searchProducts = async (searchTerm) => {
     try {
       const response = await axios.get(
@@ -494,7 +535,7 @@ export const MainProvider = ({ children }) => {
           withCredentials: true,
         }
       );
-      console.log(response.data.products);
+      setSrchProducts(response.data.products);
     } catch (error) {
       if (error.response?.status === 422) {
         alert(error.response.data.message);
@@ -603,18 +644,14 @@ export const MainProvider = ({ children }) => {
       console.log("Failed to load orders", err);
     }
   }, []);
-  const cancelOrder = useCallback(
-    async (id) => {
-      try {
-        await axios.get("/sanctum/csrf-cookie");
-        await axios.patch(`/api/orders/${id}`);
-        await getOrders();
-      } catch (err) {
-        console.log("Failed to load orders", err);
-      }
-    },
-    [getOrders]
-  );
+  const cancelOrder = useCallback(async (id) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      await axios.patch(`/api/orders/${id}`);
+    } catch (err) {
+      console.log("Failed to load orders", err);
+    }
+  }, []);
 
   const fetchCart = useCallback(async () => {
     try {
@@ -735,15 +772,17 @@ export const MainProvider = ({ children }) => {
   const handleSubmitPayment = async () => {
     await axios.get("/sanctum/csrf-cookie");
     try {
-      const response = await stripe.confirmCardPayment(clientSecret, {
-        // payment_method: {
-        //   card: "pm_card_visa",
-        // },
+      if (stripe) {
+        const response = await stripe.confirmCardPayment(clientSecret, {
+          // payment_method: {
+          //   card: "pm_card_visa",
+          // },
 
-        payment_method: "pm_card_visa",
-      });
-      console.log(response);
-      setStripeSuccess(true);
+          payment_method: "pm_card_visa",
+        });
+        console.log(response);
+        setStripeSuccess(true);
+      }
     } catch (err) {
       setStripeSuccess(false);
       setStripeError(err.message);
@@ -800,6 +839,11 @@ export const MainProvider = ({ children }) => {
         handleSubmitPayment,
         stripeSuccess,
         stripeError,
+        updateUserData,
+        searchProducts,
+        handleMode,
+        srchProducts,
+        mode,
       }}
     >
       {children}

@@ -19,12 +19,14 @@ import Badge from "@mui/material/Badge";
 import { Popover } from "@mui/material";
 import CartPage from "../pages/cart/Cart";
 const pages = ["Products", "Categories", "Contact us"];
-const settings = ["Dashboard", "Logout"];
+const settings = ["Profile", "Dashboard", "Logout"];
+import SearchIcon from "@mui/icons-material/Search";
 
 function Header() {
   const [anchorElNav, setAnchorElNav] = useState(null);
   const [anchorElUser, setAnchorElUser] = useState(null);
-  const { isAuth, logout, items, categories } = useContext(MainContext);
+  const { isAuth, logout, items, categories, handleMode } =
+    useContext(MainContext);
   const navigate = useNavigate();
 
   const handleOpenNavMenu = (event) => {
@@ -215,6 +217,31 @@ function Header() {
                   color="success"
                 >
                   <IconButton
+                    onClick={() => {
+                      navigate("/products");
+                      handleMode("search");
+                    }}
+                  >
+                    <SearchIcon />
+                  </IconButton>
+                </Badge>
+                <Badge
+                  badgeContent={items.length}
+                  sx={{
+                    color: "#bdbdbd",
+                    cursor: "pointer",
+                    marginRight: "0.5rem",
+                    transitionDuration: "300ms",
+                    "&:active": {
+                      scale: 0.9,
+                    },
+                    "&:hover": {
+                      scale: 1.2,
+                    },
+                  }}
+                  color="success"
+                >
+                  <IconButton
                     // onClick={() => {
                     //   navigate("/cart");
                     // }}
@@ -238,6 +265,31 @@ function Header() {
                 // }}
                 sx={{ display: { xs: "none", md: "flex" }, gap: "1rem" }}
               >
+                <Badge
+                  badgeContent={items.length}
+                  sx={{
+                    color: "#bdbdbd",
+                    cursor: "pointer",
+                    marginRight: "0.5rem",
+                    transitionDuration: "300ms",
+                    "&:active": {
+                      scale: 0.9,
+                    },
+                    "&:hover": {
+                      scale: 1.2,
+                    },
+                  }}
+                  color="success"
+                >
+                  <IconButton
+                    onClick={() => {
+                      navigate("/products");
+                      handleMode("search");
+                    }}
+                  >
+                    <SearchIcon />
+                  </IconButton>
+                </Badge>
                 <NavLink
                   to={"/register"}
                   className={({ isActive }) => {
@@ -348,7 +400,13 @@ function Header() {
                     </Typography>
                   </MenuItem>
                 ) : (
-                  <MenuItem key={setting} onClick={handleCloseUserMenu}>
+                  <MenuItem
+                    key={setting}
+                    onClick={() => {
+                      handleCloseUserMenu();
+                      navigate(`/${setting.toLocaleLowerCase()}`);
+                    }}
+                  >
                     <Typography sx={{ textAlign: "center" }}>
                       {setting}
                     </Typography>
