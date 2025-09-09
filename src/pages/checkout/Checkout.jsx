@@ -12,7 +12,7 @@ import { MainContext } from "../../services/context/MainContext";
 
 export default function Checkout() {
   const [loading, setLoading] = useState(false);
-  const { handleSubmitPayment, stripeSuccess, stripeError } =
+  const { handleSubmitPayment, stripeSuccess, stripeError, fetchProducts } =
     useContext(MainContext);
 
   const handleSubmit = async (event) => {
@@ -92,6 +92,7 @@ export default function Checkout() {
           onClick={async () => {
             setLoading(true);
             await handleSubmitPayment();
+            await fetchProducts();
             setLoading(false);
           }}
         >

@@ -223,6 +223,7 @@ const Dashboard = () => {
                         color="success"
                         sx={{ mr: 1, fontWeight: "bold" }}
                         onClick={() => handleOpen(id, name)}
+                        // onClick={() => navigate(`/edit-profile/${id}`)}
                         disabled={
                           role?.includes("Super Admin") && id != user.id
                         }
@@ -258,7 +259,6 @@ const Dashboard = () => {
           </TableContainer>
         </AccordionDetails>
       </Accordion>
-
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
@@ -403,7 +403,6 @@ const Dashboard = () => {
           </List>
         </AccordionDetails>
       </Accordion>
-
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
@@ -480,7 +479,6 @@ const Dashboard = () => {
           </TableContainer>
         </AccordionDetails>
       </Accordion>
-
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
@@ -498,7 +496,7 @@ const Dashboard = () => {
           </TableContainer>
         </AccordionDetails>
       </Accordion>
-
+      {/* //TODO show order data */}
       <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
@@ -577,7 +575,6 @@ const Dashboard = () => {
           </TableContainer>
         </AccordionDetails>
       </Accordion>
-
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Enter new Name</DialogTitle>
         <DialogContent>
@@ -621,7 +618,6 @@ const Dashboard = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
       <Dialog open={openRole} onClose={handleCloseRole}>
         <DialogTitle>Enter new Role</DialogTitle>
         <DialogContent>
@@ -653,7 +649,6 @@ const Dashboard = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
       <Dialog open={openCat} onClose={handleCloseCat}>
         <DialogTitle>Enter new Category</DialogTitle>
         <DialogContent>
@@ -695,7 +690,6 @@ const Dashboard = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
       <Dialog open={openCatUp} onClose={handleCloseCatUp}>
         <DialogTitle>Enter new Category</DialogTitle>
         <DialogContent>
@@ -736,7 +730,6 @@ const Dashboard = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
       <Backdrop
         sx={(theme) => ({
           color: "#fff",

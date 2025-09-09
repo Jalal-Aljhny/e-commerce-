@@ -18,17 +18,16 @@ import { MainContext } from "../services/context/MainContext";
 // Map status to color for Chip component
 const statusColors = {
   pending: "warning",
+  cancellation_pending: "error",
   shipped: "info",
-  delivered: "success",
+  paid: "success",
   cancelled: "error",
 };
 
 const OrdersTable = () => {
   const { cancelOrder, userOrders, fetchCurrentUserOrder } =
     useContext(MainContext);
-
   console.log(userOrders);
-
   useEffect(() => {
     fetchCurrentUserOrder();
   }, [fetchCurrentUserOrder]);
@@ -74,6 +73,7 @@ const OrdersTable = () => {
                     handleOpenBackdrop();
                     setLoading(true);
                     await cancelOrder(id);
+                    await fetchCurrentUserOrder();
                     setLoading(false);
                     handleCloseBackdrop();
                   }}
