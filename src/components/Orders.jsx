@@ -27,6 +27,8 @@ const OrdersTable = () => {
   const { cancelOrder, userOrders, fetchCurrentUserOrder } =
     useContext(MainContext);
 
+  console.log(userOrders);
+
   useEffect(() => {
     fetchCurrentUserOrder();
   }, [fetchCurrentUserOrder]);
@@ -75,7 +77,7 @@ const OrdersTable = () => {
                     setLoading(false);
                     handleCloseBackdrop();
                   }}
-                  disabled={loading}
+                  disabled={loading || status != "pending"}
                 >
                   Cancel Order
                 </Button>
