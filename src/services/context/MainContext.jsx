@@ -129,20 +129,45 @@ export const MainProvider = ({ children }) => {
     }
   }, [user, checkUser]);
 
-  const updateUserData = async (userId, data, image) => {
+  const updateUserData = async (
+    userId,
+    name,
+    email,
+    image,
+    bio,
+    city,
+    country,
+    phone
+  ) => {
     try {
       await axios.get("/sanctum/csrf-cookie");
-      await axios.patch(
-        `/api/users/${userId}`,
-        { ...data, image },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          withCredentials: true,
-        }
-      );
+
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("email", email);
+      formData.append("_method", "patch");
+      if (image) {
+        formData.append("image", image);
+      }
+      if (bio) {
+        formData.append("bio", bio);
+      }
+      if (city) {
+        formData.append("city", city);
+      }
+      if (country) {
+        formData.append("country", country);
+      }
+      if (phone) {
+        formData.append("phone", phone);
+      }
+
+      await axios.post(`/api/users/${userId}`, formData, {
+        headers: {
+          Accept: "application/json",
+        },
+        withCredentials: true,
+      });
       // setUsers(response.data.users);
       // console.log("users : ", response.data.users);
     } catch (error) {
@@ -249,7 +274,7 @@ export const MainProvider = ({ children }) => {
       password,
       password2,
       rememberMe,
-
+      image,
       bio,
       city,
       country,
@@ -257,18 +282,27 @@ export const MainProvider = ({ children }) => {
     ) => {
       try {
         await axios.get("/sanctum/csrf-cookie");
-        // Prepare form data
         const formData = new FormData();
         formData.append("name", name);
         formData.append("email", email);
         formData.append("password", password);
         formData.append("password_confirmation", password2);
         formData.append("remember", rememberMe);
-        // formData.append("remember", image);
-        formData.append("remember", bio);
-        formData.append("remember", city);
-        formData.append("remember", country);
-        formData.append("remember", phone);
+        if (image) {
+          formData.append("image", image);
+        }
+        if (bio) {
+          formData.append("bio", bio);
+        }
+        if (city) {
+          formData.append("city", city);
+        }
+        if (country) {
+          formData.append("country", country);
+        }
+        if (phone) {
+          formData.append("phone", phone);
+        }
 
         await axios.post("/register", formData, {
           headers: {
@@ -277,12 +311,15 @@ export const MainProvider = ({ children }) => {
           },
           withCredentials: true,
         });
-        setIsAuth(true);
+        await checkAuth();
         if (sessionStorage.getItem("pre_page")) {
           navigate(`${sessionStorage.getItem("pre_page")}`);
         } else {
           navigate("/");
         }
+        //  else {
+        //   navigate("/");
+        // }
       } catch (error) {
         console;
         const err = error.response
