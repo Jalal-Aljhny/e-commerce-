@@ -10,6 +10,7 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
@@ -41,6 +42,8 @@ import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
 import OrdersTable from "../../components/Orders";
 import { convertDate } from "../../utils/convertDate";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 const statusColors = {
   pending: "warning",
@@ -600,7 +603,8 @@ const Dashboard = () => {
                               setLoading(false);
                               handleCloseBackdrop();
                             }}
-                            disabled={loading || status !== "pending"}
+                            // disabled={loading || status !== "pending"}
+                            disabled
                           >
                             Cancel Order
                           </Button>
@@ -617,7 +621,8 @@ const Dashboard = () => {
                               setLoading(false);
                               handleCloseBackdrop();
                             }}
-                            disabled={loading || status !== "pending"}
+                            // disabled={loading || status !== "pending"}
+                            disabled
                             sx={{ marginLeft: "1rem" }}
                           >
                             Checkout

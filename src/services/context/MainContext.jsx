@@ -97,8 +97,8 @@ export const MainProvider = ({ children }) => {
         },
         withCredentials: true,
       });
-      console.log("users : ", response.data.users);
-      setUsers(response.data.users);
+      console.log("users : ", response.data.data);
+      setUsers(response.data.data);
     } catch (error) {
       console.log(error);
       console.log("failed to get users ");
@@ -332,7 +332,7 @@ export const MainProvider = ({ children }) => {
         setIsAuth(false);
       }
     },
-    [navigate]
+    [checkAuth, navigate]
   );
   const logIn = useCallback(
     async (email, password, rememberMe) => {
@@ -432,8 +432,8 @@ export const MainProvider = ({ children }) => {
         withCredentials: true,
         headers: { Accept: "application/json" },
       });
-      dispatch({ type: "FETCH_SUCCESS", payload: response.data.products });
-      console.log(response.data.products);
+      dispatch({ type: "FETCH_SUCCESS", payload: response.data.data });
+      console.log(response.data);
     } catch (error) {
       dispatch({
         type: "FETCH_FAILURE",
@@ -574,7 +574,7 @@ export const MainProvider = ({ children }) => {
           withCredentials: true,
         }
       );
-      setSrchProducts(response.data.products);
+      setSrchProducts(response.data.data);
     } catch (error) {
       if (error.response?.status === 422) {
         alert(error.response.data.message);
@@ -670,7 +670,7 @@ export const MainProvider = ({ children }) => {
         withCredentials: true,
         headers: { Accept: "application/json" },
       });
-      setUserOrders(response.data.orders);
+      setUserOrders(response.data.data);
     } catch (error) {
       console.error("Error fetching current user orders:", error);
     }
@@ -700,7 +700,7 @@ export const MainProvider = ({ children }) => {
   const getOrders = useCallback(async () => {
     try {
       const response = await axios.get("/api/orders");
-      setAllOrders(response.data.orders);
+      setAllOrders(response.data.data);
     } catch (err) {
       console.log("Failed to load orders", err);
     }
