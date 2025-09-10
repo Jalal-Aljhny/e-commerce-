@@ -30,14 +30,14 @@ const SignUp = () => {
       data.password,
       data.password2,
       rememberMe,
-      // image,
+      image,
       data.bio,
       data.city,
       data.country,
       data.phone
     );
   };
-  // const [image, setImage] = useState(null);
+  const [image, setImage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
   const [showIcon, setShowIcon] = useState(false);
@@ -245,7 +245,7 @@ const SignUp = () => {
           defaultValue=""
         />
       </div>
-      {/* <div className="form-group">
+      <div className="form-group">
         <label htmlFor="image">ٍSelect Image </label>
         <input
           type="file"
@@ -267,7 +267,7 @@ const SignUp = () => {
             }}
           />
         )}
-      </div> */}
+      </div>
       <div
         className="form-group"
         style={{
