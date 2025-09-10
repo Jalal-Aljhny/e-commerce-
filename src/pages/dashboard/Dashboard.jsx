@@ -613,7 +613,7 @@ const Dashboard = () => {
                               setLoading(true);
                               await getClientSecretForOrder(id);
                               await handleSubmitPayment();
-                              await fetchCurrentUserOrder();
+                              await getOrders();
                               setLoading(false);
                               handleCloseBackdrop();
                             }}
