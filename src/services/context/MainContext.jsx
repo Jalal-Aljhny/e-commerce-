@@ -34,6 +34,8 @@ export const MainProvider = ({ children }) => {
   const [registerError, setRegisterError] = useState(null);
   const [items, setItems] = useState([]);
   const [productData, setProductData] = useState(null);
+  const [clientSecret, setClientSecret] = useState(null);
+  const [orderId, setOrderId] = useState(null);
   const clearRegisterError = () => {
     setRegisterError(null);
   };
@@ -673,6 +675,28 @@ export const MainProvider = ({ children }) => {
       console.error("Error fetching current user orders:", error);
     }
   }, []);
+  const fetchOrderItems = useCallback(async (id) => {
+    try {
+      const response = await axios.get(`/api/orders/${id}`, {
+        withCredentials: true,
+        headers: { Accept: "application/json" },
+      });
+      return response.data.items;
+    } catch (error) {
+      console.error("Error fetching current user orders:", error);
+    }
+  }, []);
+  const getClientSecretForOrder = useCallback(async (id) => {
+    try {
+      const response = await axios.get(`/api/orders/${id}/client-secret`, {
+        withCredentials: true,
+        headers: { Accept: "application/json" },
+      });
+      setClientSecret(response.data.clientSecret);
+    } catch (error) {
+      console.error("Error fetching current user orders:", error);
+    }
+  }, []);
   const getOrders = useCallback(async () => {
     try {
       const response = await axios.get("/api/orders");
@@ -768,13 +792,12 @@ export const MainProvider = ({ children }) => {
     }
   };
 
-  const [clientSecret, setClientSecret] = useState(null);
-  const [orderId, setOrderId] = useState(null);
   const createPaymentIntent = async () => {
     try {
       await axios.get("/sanctum/csrf-cookie");
       const response = await axios.post(
-        "/api/checkout/create-payment-intent",
+        // "/api/checkout/create-payment-intent",
+        "/api/orders",
         {},
         {
           headers: {
@@ -785,7 +808,7 @@ export const MainProvider = ({ children }) => {
         }
       );
       setClientSecret(response.data.clientSecret);
-      setOrderId(response.data.orderId);
+      // setOrderId(response.data.orderId);
     } catch (err) {
       console.log(
         err.response?.data?.message || "Failed to create payment intent"
@@ -881,6 +904,8 @@ export const MainProvider = ({ children }) => {
         handleMode,
         srchProducts,
         mode,
+        fetchOrderItems,
+        getClientSecretForOrder,
       }}
     >
       {children}

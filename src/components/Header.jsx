@@ -201,7 +201,6 @@ function Header() {
             {isAuth ? (
               <>
                 <Badge
-                  badgeContent={items.length}
                   sx={{
                     color: "#bdbdbd",
                     cursor: "pointer",
@@ -266,7 +265,6 @@ function Header() {
                 sx={{ display: { xs: "none", md: "flex" }, gap: "1rem" }}
               >
                 <Badge
-                  badgeContent={items.length}
                   sx={{
                     color: "#bdbdbd",
                     cursor: "pointer",

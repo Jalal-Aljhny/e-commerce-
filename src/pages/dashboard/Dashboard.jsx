@@ -44,15 +44,16 @@ import { convertDate } from "../../utils/convertDate";
 
 const statusColors = {
   pending: "warning",
+  cancellation_pending: "error",
   shipped: "info",
-  delivered: "success",
+  paid: "success",
   cancelled: "error",
 };
 
 const Dashboard = () => {
   const {
     users,
-    user,
+    // user,
     getUsers,
     updateUserName,
     updateUserRole,
@@ -67,7 +68,28 @@ const Dashboard = () => {
     allOrders,
     getOrders,
     cancelOrder,
+    fetchOrderItems,
+    getClientSecretForOrder,
+    handleSubmitPayment,
   } = useContext(MainContext);
+
+  const [orderItemsMap, setOrderItemsMap] = useState({});
+  const [expandedOrderId, setExpandedOrderId] = useState(null);
+
+  const toggleExpand = async (orderId) => {
+    if (expandedOrderId === orderId) {
+      // Collapse if already expanded
+      setExpandedOrderId(null);
+    } else {
+      // Expand new order
+      if (!orderItemsMap[orderId]) {
+        // Fetch items if not already fetched
+        const items = await fetchOrderItems(orderId);
+        setOrderItemsMap((prev) => ({ ...prev, [orderId]: items }));
+      }
+      setExpandedOrderId(orderId);
+    }
+  };
   useEffect(() => {
     getOrders();
   }, [getOrders]);
@@ -105,12 +127,12 @@ const Dashboard = () => {
   const [value, setValue] = useState("");
   const [editingItemId, setEditingItemId] = useState(null);
 
-  const handleOpen = (itemId, currentName) => {
-    setEditingItemId(itemId);
-    setValue(String(currentName));
-    console.log(itemId, currentName);
-    setOpen(true);
-  };
+  // const handleOpen = (itemId, currentName) => {
+  //   setEditingItemId(itemId);
+  //   setValue(String(currentName));
+  //   console.log(itemId, currentName);
+  //   setOpen(true);
+  // };
   const handleClose = () => {
     setOpen(false);
     setEditingItemId(null);
@@ -217,7 +239,7 @@ const Dashboard = () => {
                       </IconButton>
                     </TableCell>
                     <TableCell align="center">
-                      <Button
+                      {/* <Button
                         variant="outlined"
                         size="small"
                         color="success"
@@ -229,7 +251,7 @@ const Dashboard = () => {
                         }
                       >
                         Update
-                      </Button>
+                      </Button> */}
                       <Button
                         variant="outlined"
                         color="error"
@@ -250,7 +272,7 @@ const Dashboard = () => {
                 {users.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                      No orders found.
+                      No users found.
                     </TableCell>
                   </TableRow>
                 )}
@@ -508,70 +530,200 @@ const Dashboard = () => {
         <AccordionDetails>
           <TableContainer
             component={Paper}
-            sx={{ maxWidth: 900, margin: "auto", mt: 4 }}
+            sx={{ maxWidth: 900, margin: "auto", mt: 15 }}
           >
-            <TableContainer
-              component={Paper}
-              sx={{ maxWidth: 900, margin: "auto", mt: 15 }}
-            >
-              <Table>
-                <TableHead>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell />
+                  <TableCell>Order ID</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Total Price</TableCell>
+                  <TableCell align="center">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {allOrders.length === 0 && (
                   <TableRow>
-                    <TableCell>Order ID</TableCell>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Total Price</TableCell>
-                    <TableCell align="center">Actions</TableCell>
+                    <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                      No orders found.
+                    </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {allOrders.map(({ id, createdAt, status, totalPrice }) => (
-                    <TableRow key={id}>
-                      <TableCell>{id}</TableCell>
-                      <TableCell>{convertDate(createdAt)}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={
-                            status.charAt(0).toUpperCase() + status.slice(1)
-                          }
-                          color={statusColors[status] || "default"}
-                          variant="outlined"
-                          sx={{ fontWeight: "bold" }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        ${parseFloat(totalPrice).toFixed(2)}
-                      </TableCell>
-                      <TableCell align="center">
-                        <Button
-                          variant="contained"
-                          size="small"
-                          color="warning"
-                          disabled
-                          onClick={async () => {
-                            handleOpenBackdrop();
-                            setLoading(true);
-                            await cancelOrder(id);
-                            setLoading(false);
-                            handleCloseBackdrop();
-                          }}
-                          // disabled={loading}
+                )}
+
+                {allOrders.map(({ id, createdAt, status, totalPrice }) => {
+                  const items = orderItemsMap[id] || [];
+                  return (
+                    <Fragment key={id}>
+                      <TableRow hover>
+                        <TableCell>
+                          <IconButton
+                            size="small"
+                            onClick={() => toggleExpand(id)}
+                            aria-label={
+                              expandedOrderId === id ? "Collapse" : "Expand"
+                            }
+                          >
+                            {expandedOrderId === id ? (
+                              <KeyboardArrowUpIcon />
+                            ) : (
+                              <KeyboardArrowDownIcon />
+                            )}
+                          </IconButton>
+                        </TableCell>
+                        <TableCell>{id}</TableCell>
+                        <TableCell>{convertDate(createdAt)}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={
+                              status.charAt(0).toUpperCase() + status.slice(1)
+                            }
+                            color={statusColors[status] || "default"}
+                            variant="outlined"
+                            sx={{ fontWeight: "bold" }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          ${parseFloat(totalPrice).toFixed(2)}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Button
+                            variant="contained"
+                            size="small"
+                            color="warning"
+                            onClick={async () => {
+                              handleOpenBackdrop();
+                              setLoading(true);
+                              await cancelOrder(id);
+                              await getOrders();
+                              setLoading(false);
+                              handleCloseBackdrop();
+                            }}
+                            disabled={loading || status !== "pending"}
+                          >
+                            Cancel Order
+                          </Button>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            color="success"
+                            onClick={async () => {
+                              handleOpenBackdrop();
+                              setLoading(true);
+                              await getClientSecretForOrder(id);
+                              await handleSubmitPayment();
+                              await fetchCurrentUserOrder();
+                              setLoading(false);
+                              handleCloseBackdrop();
+                            }}
+                            disabled={loading || status !== "pending"}
+                            sx={{ marginLeft: "1rem" }}
+                          >
+                            Checkout
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+
+                      <TableRow>
+                        <TableCell
+                          style={{ paddingBottom: 0, paddingTop: 0 }}
+                          colSpan={6}
                         >
-                          Cancel Order
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {allOrders.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                        No orders found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                          <Collapse
+                            in={expandedOrderId === id}
+                            timeout="auto"
+                            unmountOnExit
+                          >
+                            <Box margin={1}>
+                              <Typography
+                                variant="subtitle1"
+                                gutterBottom
+                                component="div"
+                              >
+                                Items
+                              </Typography>
+                              <Table size="small" aria-label="order-items">
+                                <TableHead>
+                                  <TableRow>
+                                    <TableCell>Product</TableCell>
+                                    <TableCell>Quantity</TableCell>
+                                    <TableCell>Unit Price</TableCell>
+                                    <TableCell>Total Price</TableCell>
+                                  </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                  {items.length === 0 && (
+                                    <TableRow>
+                                      <TableCell colSpan={4} align="center">
+                                        No items found.
+                                      </TableCell>
+                                    </TableRow>
+                                  )}
+                                  {items.map(
+                                    ({
+                                      id: itemId,
+                                      quantity,
+                                      unitPrice,
+                                      totalPrice,
+                                      product,
+                                    }) => (
+                                      <TableRow key={itemId}>
+                                        <TableCell>
+                                          <Box
+                                            display="flex"
+                                            alignItems="center"
+                                            gap={1}
+                                          >
+                                            {product.image && (
+                                              <img
+                                                src={product.image}
+                                                alt={product.title}
+                                                style={{
+                                                  width: 50,
+                                                  height: 50,
+                                                  objectFit: "cover",
+                                                  borderRadius: 4,
+                                                }}
+                                              />
+                                            )}
+                                            <Typography>
+                                              {product.title}
+                                            </Typography>
+                                          </Box>
+                                        </TableCell>
+                                        <TableCell>{quantity}</TableCell>
+                                        <TableCell>
+                                          ${parseFloat(unitPrice).toFixed(2)}
+                                        </TableCell>
+                                        <TableCell>
+                                          ${parseFloat(totalPrice).toFixed(2)}
+                                        </TableCell>
+                                      </TableRow>
+                                    )
+                                  )}
+                                </TableBody>
+                              </Table>
+                            </Box>
+                          </Collapse>
+                        </TableCell>
+                      </TableRow>
+                    </Fragment>
+                  );
+                })}
+              </TableBody>
+            </Table>
+
+            <Backdrop
+              sx={(theme) => ({
+                color: "#fff",
+                zIndex: theme.zIndex.drawer + 1,
+              })}
+              open={openBackdrop}
+              onClick={handleCloseBackdrop}
+            >
+              <CircularProgress color="inherit" />
+            </Backdrop>
           </TableContainer>
         </AccordionDetails>
       </Accordion>
