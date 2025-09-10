@@ -23,8 +23,14 @@ import { MainContext } from "../../services/context/MainContext";
 import { useNavigate } from "react-router-dom";
 
 const EditProfilePage = () => {
-  const { getUser, updateUserData, role } = useContext(MainContext);
+  const {
+    getUser,
+    updateUserData,
+    role,
+    user: userRegistered,
+  } = useContext(MainContext);
 
+  console.log("userRegistered : ", userRegistered);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const handleShareClick = () => {
     setSnackbarOpen(true);
@@ -37,9 +43,11 @@ const EditProfilePage = () => {
   const [user, setUser] = useState(null);
   const [roleValue, setRoleValue] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const {
+    control,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
@@ -59,21 +67,23 @@ const EditProfilePage = () => {
   });
 
   useEffect(() => {
-    getUser(id)
-      .then((res) => {
-        setUser(res.data.user);
-        const initialRole =
-          res.data.user.role && res.data.user.role.length > 0
-            ? res.data.user.role[0]
-            : "";
-        setRoleValue(initialRole);
-        if (res.data.user.image) {
-          setImagePreview(res.data.user.image);
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    if (id) {
+      getUser(id)
+        .then((res) => {
+          setUser(res.data.user);
+          const initialRole =
+            res.data.user.role && res.data.user.role.length > 0
+              ? res.data.user.role[0]
+              : "";
+          setRoleValue(initialRole);
+          if (res.data.user.image) {
+            setImagePreview(res.data.user.image);
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
   }, [getUser, id, reset]);
   const [isReady, setIsReady] = useState(false);
   useEffect(() => {
@@ -97,24 +107,31 @@ const EditProfilePage = () => {
     setValue("role", roleValue);
   }, [roleValue, setValue]);
 
-  //   const handleImageChange = (file) => {
-  //     if (file) {
-  //       setImagePreview(URL.createObjectURL(file));
-  //     } else {
-  //       setImagePreview(null);
-  //     }
-  //   };
+  const handleImageChange = (file) => {
+    if (file) {
+      setImagePreview(URL.createObjectURL(file));
+      setSelectedImageFile(file);
+    } else {
+      setImagePreview(null);
+      setSelectedImageFile(null);
+    }
+  };
 
   const onSubmit = async (data) => {
     setLoading(true);
-
-    const updatedUser = {
-      ...data,
-      role: data.role ? [data.role] : [],
-    };
+    console.log(data);
 
     try {
-      await updateUserData(id, updatedUser, data.imageFile);
+      await updateUserData(
+        id,
+        data.name,
+        data.email,
+        selectedImageFile,
+        data.bio,
+        data.city,
+        data.country,
+        data.phone
+      );
       handleShareClick();
     } finally {
       setLoading(false);
@@ -227,8 +244,7 @@ const EditProfilePage = () => {
                 fullWidth
               />
 
-              {/* Image upload */}
-              {/* <Controller
+              <Controller
                 name="imageFile"
                 control={control}
                 rules={{
@@ -264,8 +280,9 @@ const EditProfilePage = () => {
                         accept="image/*"
                         hidden
                         onChange={(e) => {
+                          const file = e.target.files[0];
                           field.onChange(e.target.files);
-                          handleImageChange(e.target.files[0]);
+                          handleImageChange(file);
                         }}
                       />
                     </Button>
@@ -276,10 +293,10 @@ const EditProfilePage = () => {
                     )}
                   </>
                 )}
-              /> */}
+              />
 
               {/* Role select: hide if user has "Super Admin" role */}
-              {user?.role?.includes("Super Admin") ? null : (
+              {userRegistered?.role?.includes("Super Admin") ? (
                 <FormControl fullWidth error={!!errors.role}>
                   <InputLabel id="role-select-label">Role</InputLabel>
                   <Select
@@ -301,7 +318,7 @@ const EditProfilePage = () => {
                     </Typography>
                   )}
                 </FormControl>
-              )}
+              ) : null}
             </Stack>
 
             <Divider sx={{ my: 3 }} />
