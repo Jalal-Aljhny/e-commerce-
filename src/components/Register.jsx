@@ -29,15 +29,15 @@ const SignUp = () => {
       data.email,
       data.password,
       data.password2,
-      rememberMe,
-      image,
-      data.bio,
-      data.city,
-      data.country,
-      data.phone
+      rememberMe
+      // image,
+      // data.bio,
+      // data.city,
+      // data.country,
+      // data.phone
     );
   };
-  const [image, setImage] = useState(null);
+  // const [image, setImage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
   const [showIcon, setShowIcon] = useState(false);
@@ -215,7 +215,7 @@ const SignUp = () => {
         ) : null}
       </div>
 
-      <div className="form-group">
+      {/* <div className="form-group">
         <label htmlFor="phone">Phone</label>
         <input
           type="text"
@@ -267,7 +267,7 @@ const SignUp = () => {
             }}
           />
         )}
-      </div>
+      </div> */}
       <div
         className="form-group"
         style={{
@@ -291,7 +291,7 @@ const SignUp = () => {
           }}
         />
       </div>
-      <div className="form-group">
+      {/* <div className="form-group">
         <label htmlFor="bio">Bio</label>
         <textarea
           id="bio"
@@ -300,7 +300,7 @@ const SignUp = () => {
           defaultValue={null}
           style={{ padding: "1rem" }}
         />
-      </div>
+      </div> */}
       <button className="submit" type="submit">
         Register
       </button>

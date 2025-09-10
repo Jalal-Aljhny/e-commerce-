@@ -273,12 +273,12 @@ export const MainProvider = ({ children }) => {
       email,
       password,
       password2,
-      rememberMe,
-      image,
-      bio,
-      city,
-      country,
-      phone
+      rememberMe
+      // image,
+      // bio,
+      // city,
+      // country,
+      // phone
     ) => {
       try {
         await axios.get("/sanctum/csrf-cookie");
@@ -288,21 +288,21 @@ export const MainProvider = ({ children }) => {
         formData.append("password", password);
         formData.append("password_confirmation", password2);
         formData.append("remember", rememberMe);
-        if (image) {
-          formData.append("image", image);
-        }
-        if (bio) {
-          formData.append("bio", bio);
-        }
-        if (city) {
-          formData.append("city", city);
-        }
-        if (country) {
-          formData.append("country", country);
-        }
-        if (phone) {
-          formData.append("phone", phone);
-        }
+        // if (image) {
+        //   formData.append("image", image);
+        // }
+        // if (bio) {
+        //   formData.append("bio", bio);
+        // }
+        // if (city) {
+        //   formData.append("city", city);
+        // }
+        // if (country) {
+        //   formData.append("country", country);
+        // }
+        // if (phone) {
+        //   formData.append("phone", phone);
+        // }
 
         await axios.post("/register", formData, {
           headers: {
