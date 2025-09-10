@@ -135,7 +135,7 @@ const Products = () => {
           spacing={{ xs: 2, md: 3 }}
           columns={{ xs: 2, sm: 8, md: 12 }}
           className="boxContainer"
-          sx={{ alignItems: "stretch" }}
+          sx={{ alignItems: "stretch", justifyContent: "center" }}
         >
           {Array.from(Array(6)).map((_, index) => (
             <Grid key={index} className="box" size={{ xs: 2, sm: 4, md: 4 }}>
@@ -149,6 +149,7 @@ const Products = () => {
           spacing={{ xs: 2, md: 3 }}
           columns={{ xs: 2, sm: 8, md: 12 }}
           className="boxContainer"
+          sx={{ alignItems: "stretch", justifyContent: "center" }}
         >
           {srchProducts.map((product, index) => (
             <Grid key={index} className="box" size={{ xs: 2, sm: 4, md: 4 }}>
@@ -205,6 +206,7 @@ const Products = () => {
           spacing={{ xs: 2, md: 3 }}
           columns={{ xs: 2, sm: 8, md: 12 }}
           className="boxContainer"
+          sx={{ alignItems: "stretch", justifyContent: "center" }}
         >
           {products.map((product, index) => (
             <Grid key={index} className="box" size={{ xs: 2, sm: 4, md: 4 }}>
