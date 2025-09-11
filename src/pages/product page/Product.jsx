@@ -6,7 +6,6 @@ import CardActions from "@mui/material/CardActions";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import { red } from "@mui/material/colors";
 import ShareIcon from "@mui/icons-material/Share";
 import Button from "@mui/material/Button";
 import { convertDate } from "../../utils/convertDate";
@@ -14,6 +13,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { MainContext } from "../../services/context/MainContext";
 import {
   Alert,
+  Box,
   Dialog,
   DialogActions,
   DialogContent,
@@ -24,8 +24,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import CustomCardSkeleton from "../../components/SkeletonCard";
 import ArrowBackSharpIcon from "@mui/icons-material/ArrowBackSharp";
+import RatingInput from "../../components/RatingInput";
+import RatingDisplay from "../../components/RatingOutput";
 export default function Product() {
-  const { productData, fetchProduct, isAuth } = useContext(MainContext);
+  const { productData, fetchProduct, isAuth, getUser, rateProduct } =
+    useContext(MainContext);
   const id = location.pathname.split("/")[2];
   const isMount = useRef(false);
   useEffect(() => {
@@ -34,7 +37,16 @@ export default function Product() {
       isMount.current = true;
     }
   }, [fetchProduct, id]);
-  console.log(productData);
+  const [seller, setSeller] = useState();
+  const [rating, setRating] = useState(0);
+
+  useEffect(() => {
+    if (productData) {
+      getUser(productData.userId).then((res) => {
+        setSeller(res.data.user);
+      });
+    }
+  }, [getUser, productData]);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const navigate = useNavigate();
@@ -72,7 +84,7 @@ export default function Product() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        height: "100vh",
+        minHeight: "100vh",
         width: "100vw",
       }}
     >
@@ -96,28 +108,50 @@ export default function Product() {
       {productData ? (
         <Card
           sx={{
-            width: "300px",
+            width: "50%",
             padding: "1rem",
             borderRadius: "1rem",
-            height: "480px",
+            height: "auto",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
+            mb: "15rem",
+            mt: "5rem",
           }}
         >
-          <CardHeader
-            avatar={
-              <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                {productData?.categories[0]?.name}
-              </Avatar>
+          <Typography
+            sx={{
+              padding: "0.25rem 0.75rem",
+              borderRadius: "2rem",
+              border: "1px solid #3335",
+              width: "fit-content",
+              // marginBlock: "1rem",
+              fontWeight: "bold",
+              fontStyle: "italic",
+              transitionDuration: 300,
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: "#333",
+                color: "#fff",
+              },
+            }}
+            onClick={() =>
+              navigate(`/categories?name=${productData?.categories[0]?.name}`)
             }
+          >
+            {productData?.categories[0]?.name}
+          </Typography>
+          <CardHeader
+            // avatar={
+            //   <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
+            //     {productData?.categories[0]?.name}
+            //   </Avatar>
+            // }
             title={productData?.title}
-            // title="sprite"
-            subheader={convertDate(productData?.lastModified)}
             slotProps={{
               title: {
                 fontWeight: "bold",
-                fontSize: "1.25rem",
+                fontSize: "1.5rem",
                 fontStyle: "italic",
               },
             }}
@@ -133,6 +167,33 @@ export default function Product() {
           <CardContent>
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
               {productData?.description}
+            </Typography>
+
+            <Typography
+              variant="body2"
+              sx={{
+                color: "text.secondary",
+                marginBlock: "1rem",
+              }}
+            >
+              <span style={{ fontWeight: "bold" }}>Created By :</span>
+              <Box
+                component={"span"}
+                sx={{
+                  transitionDuration: "300ms",
+                  padding: "0.75rem",
+                  borderRadius: "2rem",
+                  "&:hover": {
+                    boxShadow: "1px 1px 5px ",
+                  },
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  navigate(`/seller/${seller.id}`);
+                }}
+              >
+                {seller?.name}
+              </Box>
             </Typography>
             <Typography
               sx={{
@@ -159,6 +220,18 @@ export default function Product() {
               >
                 quantity : {productData?.quantity}
               </Typography>
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: "text.secondary",
+                fontWeight: "bold",
+                fontStyle: "italic",
+                fontSize: "0.75rem",
+                mt: 1,
+              }}
+            >
+              Last update : {convertDate(productData?.lastModified)}
             </Typography>
           </CardContent>
           <CardActions disableSpacing>
@@ -194,6 +267,57 @@ export default function Product() {
               Add to cart
             </Button>
           </CardActions>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-around",
+              alignItems: "center",
+              marginBlock: "2rem",
+              flexDirection: "column",
+            }}
+          >
+            <RatingDisplay
+              average={productData?.ratings.average}
+              count={productData?.ratings.count}
+              max={5}
+            />
+          </Box>
+          <hr />
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-around",
+              alignItems: "center",
+              marginBlock: "2rem",
+              flexDirection: "column",
+              textAlign: "center",
+            }}
+          >
+            <div>
+              <h3>Rate this seller:</h3>
+              <RatingInput value={rating} onChange={setRating} />
+              {rating ? <p>Your rating: {rating} of 5</p> : null}
+            </div>
+            {rating ? (
+              <Button
+                size="small"
+                variant="outlined"
+                color="info"
+                onClick={async () => {
+                  await rateProduct(productData?.id, rating);
+                  await fetchProduct(id);
+                  window.scrollTo(0, 0);
+                  // setSnackbarOpen(true);
+                  setRating(0);
+                }}
+                sx={{ marginBlock: "1rem" }}
+                disabled={!rating}
+              >
+                Send Rate
+              </Button>
+            ) : null}
+          </Box>
         </Card>
       ) : (
         <CustomCardSkeleton />
