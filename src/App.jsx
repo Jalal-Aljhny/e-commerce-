@@ -33,6 +33,7 @@ const App = () => {
         <Route path="/products" element={<Products />} />
         <Route path="/products/:prodcut_id" element={<Product />} />
         <Route path="/categories" element={<Categories />} />
+        <Route path="/seller/:seller_id" element={<SellerProfile />} />
 
         {isAuth ? (
           <>
@@ -45,7 +46,6 @@ const App = () => {
             />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<Checkout />} />
-            <Route path="/seller/:seller_id" element={<SellerProfile />} />
           </>
         ) : (
           <>
@@ -58,10 +58,6 @@ const App = () => {
             />
             <Route path="/cart" element={<Navigate to={"/register"} />} />
             <Route path="/checkout" element={<Navigate to={"/register"} />} />
-            <Route
-              path="/seller/:seller_id"
-              element={<Navigate to={"/register"} />}
-            />
           </>
         )}
         {isAuth && role == "user" ? (

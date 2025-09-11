@@ -167,34 +167,33 @@ export default function Product() {
               {productData?.description}
             </Typography>
 
-            {isAuth ? (
-              <Typography
-                variant="body2"
+            <Typography
+              variant="body2"
+              sx={{
+                color: "text.secondary",
+                marginBlock: "1rem",
+              }}
+            >
+              <span style={{ fontWeight: "bold" }}>Created By :</span>
+              <Box
+                component={"span"}
                 sx={{
-                  color: "text.secondary",
-                  marginBlock: "1rem",
+                  transitionDuration: "300ms",
+                  padding: "0.75rem",
+                  borderRadius: "2rem",
+                  "&:hover": {
+                    boxShadow: "1px 1px 5px ",
+                  },
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  navigate(`/seller/${seller.id}`);
                 }}
               >
-                <span style={{ fontWeight: "bold" }}>Created By :</span>
-                <Box
-                  component={"span"}
-                  sx={{
-                    transitionDuration: "300ms",
-                    padding: "0.75rem",
-                    borderRadius: "2rem",
-                    "&:hover": {
-                      boxShadow: "1px 1px 5px ",
-                    },
-                    cursor: "pointer",
-                  }}
-                  onClick={() => {
-                    navigate(`/seller/${seller.id}`);
-                  }}
-                >
-                  {seller?.name}
-                </Box>
-              </Typography>
-            ) : null}
+                {seller?.name}
+              </Box>
+            </Typography>
+
             <Typography
               sx={{
                 display: "flex",
