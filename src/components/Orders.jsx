@@ -38,6 +38,9 @@ const OrdersTable = () => {
     fetchOrderItems,
     getClientSecretForOrder,
     handleSubmitPayment,
+    lastOrderPage,
+    currentOrderPage,
+    loadMoreUserOrders,
   } = useContext(MainContext);
   const [loading, setLoading] = useState(false);
   const [openBackdrop, setOpenBackdrop] = useState(false);
@@ -75,7 +78,7 @@ const OrdersTable = () => {
         <TableHead>
           <TableRow>
             <TableCell />
-            <TableCell>Order ID</TableCell>
+            {/* <TableCell>Order ID</TableCell> */}
             <TableCell>Date</TableCell>
             <TableCell>Status</TableCell>
             <TableCell>Total Price</TableCell>
@@ -111,7 +114,7 @@ const OrdersTable = () => {
                       )}
                     </IconButton>
                   </TableCell>
-                  <TableCell>{id}</TableCell>
+                  {/* <TableCell>{id}</TableCell> */}
                   <TableCell>{convertDate(createdAt)}</TableCell>
                   <TableCell>
                     <Chip
@@ -137,7 +140,7 @@ const OrdersTable = () => {
                       }}
                       disabled={loading || status !== "pending"}
                     >
-                      Cancel Order
+                      Cancel
                     </Button>
                     <Button
                       variant="contained"
@@ -155,7 +158,7 @@ const OrdersTable = () => {
                       disabled={loading || status !== "pending"}
                       sx={{ marginLeft: "1rem" }}
                     >
-                      Checkout
+                      Confirm
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -245,6 +248,17 @@ const OrdersTable = () => {
             );
           })}
         </TableBody>
+        {currentOrderPage < lastOrderPage ? (
+          <Button
+            variant="contained"
+            size="small"
+            color="success"
+            onClick={loadMoreUserOrders}
+            sx={{ margin: "2rem auto", display: "block" }}
+          >
+            Load More
+          </Button>
+        ) : null}
       </Table>
 
       <Backdrop

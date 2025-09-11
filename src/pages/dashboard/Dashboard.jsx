@@ -70,10 +70,17 @@ const Dashboard = () => {
     removeGategory,
     allOrders,
     getOrders,
-    cancelOrder,
+
     fetchOrderItems,
-    getClientSecretForOrder,
-    handleSubmitPayment,
+    currentPage,
+    lastPage,
+    loadMoreProducts,
+    currentUsersPage,
+    lastUsersPage,
+    loadMoreUsers,
+    currentAllOrdersPage,
+    lastAllOrdersPage,
+    loadMoreOrders,
   } = useContext(MainContext);
 
   const [orderItemsMap, setOrderItemsMap] = useState({});
@@ -213,7 +220,7 @@ const Dashboard = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>User ID</TableCell>
+                  {/* <TableCell>User ID</TableCell> */}
                   <TableCell>Name</TableCell>
                   <TableCell>Email</TableCell>
                   <TableCell>Roles</TableCell>
@@ -223,7 +230,7 @@ const Dashboard = () => {
               <TableBody>
                 {users.map(({ id, name, email, role }) => (
                   <TableRow key={id}>
-                    <TableCell>{id}</TableCell>
+                    {/* <TableCell>{id}</TableCell> */}
 
                     <TableCell>{name}</TableCell>
                     <TableCell>{email}</TableCell>
@@ -282,6 +289,17 @@ const Dashboard = () => {
               </TableBody>
             </Table>
           </TableContainer>
+          {currentUsersPage < lastUsersPage ? (
+            <Button
+              variant="contained"
+              size="small"
+              color="success"
+              onClick={loadMoreUsers}
+              sx={{ margin: "2rem auto", display: "block" }}
+            >
+              Load More
+            </Button>
+          ) : null}
         </AccordionDetails>
       </Accordion>
       <Accordion>
@@ -425,6 +443,17 @@ const Dashboard = () => {
                 </Fragment>
               )
             )}
+            {currentPage < lastPage ? (
+              <Button
+                variant="contained"
+                size="small"
+                color="success"
+                onClick={loadMoreProducts}
+                sx={{ margin: "2rem auto", display: "block" }}
+              >
+                Load More
+              </Button>
+            ) : null}
           </List>
         </AccordionDetails>
       </Accordion>
@@ -539,11 +568,11 @@ const Dashboard = () => {
               <TableHead>
                 <TableRow>
                   <TableCell />
-                  <TableCell>Order ID</TableCell>
+                  {/* <TableCell>Order ID</TableCell> */}
                   <TableCell>Date</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Total Price</TableCell>
-                  <TableCell align="center">Actions</TableCell>
+                  {/* <TableCell align="center">Actions</TableCell> */}
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -575,7 +604,7 @@ const Dashboard = () => {
                             )}
                           </IconButton>
                         </TableCell>
-                        <TableCell>{id}</TableCell>
+                        {/* <TableCell>{id}</TableCell> */}
                         <TableCell>{convertDate(createdAt)}</TableCell>
                         <TableCell>
                           <Chip
@@ -590,7 +619,7 @@ const Dashboard = () => {
                         <TableCell>
                           ${parseFloat(totalPrice).toFixed(2)}
                         </TableCell>
-                        <TableCell align="center">
+                        {/* <TableCell align="center">
                           <Button
                             variant="contained"
                             size="small"
@@ -627,7 +656,7 @@ const Dashboard = () => {
                           >
                             Checkout
                           </Button>
-                        </TableCell>
+                        </TableCell> */}
                       </TableRow>
 
                       <TableRow>
@@ -718,7 +747,17 @@ const Dashboard = () => {
                 })}
               </TableBody>
             </Table>
-
+            {currentAllOrdersPage < lastAllOrdersPage ? (
+              <Button
+                variant="contained"
+                size="small"
+                color="success"
+                onClick={loadMoreOrders}
+                sx={{ margin: "2rem auto", display: "block" }}
+              >
+                Load More
+              </Button>
+            ) : null}
             <Backdrop
               sx={(theme) => ({
                 color: "#fff",

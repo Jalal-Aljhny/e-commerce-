@@ -30,6 +30,9 @@ const Products = () => {
     srchProducts,
     mode,
     handleMode,
+    currentPage,
+    lastPage,
+    loadMoreProducts,
   } = useContext(MainContext);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const handleShareClick = () => {
@@ -158,7 +161,7 @@ const Products = () => {
                 key={product.id}
                 title={product.title}
                 categories={product.categories[0].name}
-                description={product.description}
+                // description={product.description}
                 imageUrl={product.image}
                 price={product.price}
                 quantity={product.quantity}
@@ -201,34 +204,47 @@ const Products = () => {
         // columns={{ xs: 2, sm: 8, md: 12 }}
         // className="boxContainer"
         // >
-        <Grid
-          container
-          spacing={{ xs: 2, md: 3 }}
-          columns={{ xs: 2, sm: 8, md: 12 }}
-          className="boxContainer"
-          sx={{ alignItems: "stretch", justifyContent: "center" }}
-        >
-          {products.map((product, index) => (
-            <Grid key={index} className="box" size={{ xs: 2, sm: 4, md: 4 }}>
-              <Card
-                id={product.id}
-                key={product.id}
-                title={product.title}
-                categories={product.categories[0].name}
-                description={product.description}
-                imageUrl={product.image}
-                price={product.price}
-                quantity={product.quantity}
-                lastModified={product.lastModified}
-                onShare={handleShareClick}
-                onOpen={() => {
-                  handleOpen();
-                  setProductId(product.id);
-                }}
-              />
-            </Grid>
-          ))}
-        </Grid>
+        <>
+          <Grid
+            container
+            spacing={{ xs: 2, md: 3 }}
+            columns={{ xs: 2, sm: 8, md: 12 }}
+            className="boxContainer"
+            sx={{ alignItems: "stretch", justifyContent: "center" }}
+          >
+            {products.map((product, index) => (
+              <Grid key={index} className="box" size={{ xs: 2, sm: 4, md: 4 }}>
+                <Card
+                  id={product.id}
+                  key={product.id}
+                  title={product.title}
+                  categories={product.categories[0].name}
+                  // description={product.description}
+                  imageUrl={product.image}
+                  price={product.price}
+                  quantity={product.quantity}
+                  lastModified={product.lastModified}
+                  onShare={handleShareClick}
+                  onOpen={() => {
+                    handleOpen();
+                    setProductId(product.id);
+                  }}
+                />
+              </Grid>
+            ))}
+          </Grid>
+          {currentPage < lastPage ? (
+            <Button
+              variant="contained"
+              size="small"
+              color="success"
+              onClick={loadMoreProducts}
+              sx={{ margin: "2rem auto", display: "block" }}
+            >
+              Load More
+            </Button>
+          ) : null}
+        </>
       ) : // categories, description, title, imageUrl;
 
       !loading && error && mode == "normal" ? (

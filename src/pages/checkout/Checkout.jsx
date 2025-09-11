@@ -9,26 +9,43 @@ import {
 } from "@mui/material";
 import CartPage from "../cart/Cart";
 import { MainContext } from "../../services/context/MainContext";
+import { Controller, useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 
 export default function Checkout() {
   const [loading, setLoading] = useState(false);
-  const { handleSubmitPayment, stripeSuccess, stripeError, fetchProducts } =
-    useContext(MainContext);
+  const {
+    handleSubmitPayment,
+    stripeSuccess,
+    stripeError,
+    fetchProducts,
+    fetchCart,
+  } = useContext(MainContext);
+  const navigate = useNavigate();
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      cardNumber: "",
+    },
+  });
+
+  const onSubmit = async (data) => {
     setLoading(true);
-    setError(null);
-  };
-
-  const [cardNumber, setCardNumber] = useState("");
-  const [error, setError] = useState(false);
-  const handleChange = (e) => {
-    const val = e.target.value;
-    if (/^\d{0,16}$/.test(val)) {
-      // if (/^4\d{3}(-\d{4}){3}$/.test(val)) {
-      setCardNumber(val);
-      setError(val.length !== 16);
+    if (data.cardNumber.length !== 16) {
+      setLoading(false);
+      return;
+    }
+    try {
+      await handleSubmitPayment();
+      await fetchProducts();
+      await fetchCart();
+    } finally {
+      setLoading(false);
+      navigate("/dashboard");
     }
   };
 
@@ -40,7 +57,8 @@ export default function Checkout() {
   // pm_card_authenticationRequired : Simulates 3D Secure authentication required
   return (
     <Box
-      onSubmit={handleSubmit}
+      component={"form"}
+      onSubmit={handleSubmit(onSubmit)}
       sx={{
         mt: 4,
         mb: 10,
@@ -55,8 +73,7 @@ export default function Checkout() {
         <Typography variant="h6" gutterBottom>
           Enter your payment details
         </Typography>
-        <Box sx={{ mb: 2, border: "1px solid #ccc", borderRadius: 1 }}>
-          {/* <CardElement options={{ hidePostalCode: true }} /> */}
+        {/* <Box sx={{ mb: 2, border: "1px solid #ccc", borderRadius: 1 }}>
           <TextField
             label="Card Number"
             value={cardNumber}
@@ -67,12 +84,43 @@ export default function Checkout() {
             variant="outlined"
             fullWidth
           />
+        </Box> */}
+
+        <Box sx={{ mb: 2, border: "1px solid #ccc", borderRadius: 1 }}>
+          <Controller
+            name="cardNumber"
+            control={control}
+            rules={{
+              required: "Card number is required",
+              pattern: {
+                value: /^\d{16}$/,
+                message: "Card number must be exactly 16 digits",
+              },
+            }}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Card Number"
+                error={!!errors.cardNumber}
+                helperText={errors.cardNumber ? errors.cardNumber.message : ""}
+                inputProps={{ maxLength: 16 }}
+                variant="outlined"
+                fullWidth
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (/^\d{0,16}$/.test(val)) {
+                    field.onChange(val);
+                  }
+                }}
+              />
+            )}
+          />
         </Box>
-        {error && (
+        {/* {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
-        )}
+        )} */}
         {stripeError && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {stripeError}
@@ -87,14 +135,15 @@ export default function Checkout() {
           type="submit"
           variant="contained"
           color="primary"
-          disabled={!cardNumber || loading || stripeSuccess}
+          disabled={loading || stripeSuccess}
           sx={{ marginInline: "auto" }}
-          onClick={async () => {
-            setLoading(true);
-            await handleSubmitPayment();
-            await fetchProducts();
-            setLoading(false);
-          }}
+          // onClick={async () => {
+          //   setLoading(true);
+          //   await handleSubmitPayment();
+          //   await fetchProducts();
+          //   await fetchCart();
+          //   setLoading(false);
+          // }}
         >
           {loading ? <CircularProgress size={24} /> : "Place my order"}
         </Button>
