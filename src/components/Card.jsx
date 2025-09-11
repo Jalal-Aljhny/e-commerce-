@@ -16,7 +16,7 @@ export default function CustomCard({
   id,
   title,
   categories,
-  description,
+  // description,
   imageUrl,
   price,
   quantity,
@@ -35,6 +35,10 @@ export default function CustomCard({
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
+        cursor: "pointer",
+      }}
+      onClick={() => {
+        navigate(`/products/${id}`);
       }}
     >
       <CardHeader
@@ -70,7 +74,7 @@ export default function CustomCard({
             marginBottom: "1rem",
           }}
         >
-          <Typography
+          {/* <Typography
             variant="body2"
             sx={{
               color: "text.secondary",
@@ -81,7 +85,7 @@ export default function CustomCard({
             }}
           >
             {description}
-          </Typography>
+          </Typography> */}
           <Typography
             sx={{
               padding: "0.25rem 0.75rem",
