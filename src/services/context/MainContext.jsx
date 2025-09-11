@@ -1010,20 +1010,31 @@ export const MainProvider = ({ children }) => {
     }
   };
   const [comments, setComments] = useState([]);
-  const getComments = useCallback(async (id) => {
+  const [currentCommenstPage, setCurrentCommenstPage] = useState(1);
+  const [totalCommentsPages, setTotalCommentsPages] = useState(1);
+  const getComments = useCallback(async (id, page = 1, append = false) => {
     try {
-      const response = await axios.get(`/api/products/${id}/comments`);
-      setComments(response.data.data);
+      const response = await axios.get(
+        `/api/products/${id}/comments?page=${page}`
+      );
+      // setComments(response.data.data);
+      const newComments = response.data.data;
+      setComments((prevComments) =>
+        append ? [...prevComments, ...newComments] : newComments
+      );
+      // Update pagination state (e.g., currentPage, totalPages)
+      setCurrentCommenstPage(response.data.meta.current_page);
+      setTotalCommentsPages(response.data.meta.last_page);
     } catch (err) {
       console.log(err);
     }
   }, []);
-  const deleteComment = async (id) => {
+  const deleteComment = async (productId, commentId) => {
     try {
       await axios.get("/sanctum/csrf-cookie");
       await axios.delete(
         // "/api/checkout/create-payment-intent",
-        `/api/products/${id}/comments/${id}`,
+        `/api/products/${productId}/comments/${commentId}`,
 
         {
           headers: {
@@ -1035,6 +1046,26 @@ export const MainProvider = ({ children }) => {
       );
     } catch (err) {
       console.log(err);
+    }
+  };
+  const updateComment = async (productId, commentId, newContent) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      const response = await axios.patch(
+        `/api/products/${productId}/comments/${commentId}`,
+        { content: newContent },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      // setItems(response.data.items);
+      console.log(response.data);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -1117,6 +1148,9 @@ export const MainProvider = ({ children }) => {
         getComments,
         comments,
         deleteComment,
+        updateComment,
+        totalCommentsPages,
+        currentCommenstPage,
       }}
     >
       {children}

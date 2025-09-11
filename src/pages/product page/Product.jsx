@@ -49,6 +49,10 @@ export default function Product() {
     getComments,
     comments,
     deleteComment,
+    user,
+    updateComment,
+    totalCommentsPages,
+    currentCommenstPage,
   } = useContext(MainContext);
   const id = location.pathname.split("/")[2];
   const isMount = useRef(false);
@@ -129,35 +133,41 @@ export default function Product() {
 
   const handleDeleteComment = async (commentId) => {
     try {
-      await deleteComment(commentId);
+      await deleteComment(id, commentId);
       await getComments(id);
     } catch (error) {
       console.error("Failed to delete comment", error);
     }
   };
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingComment, setEditingComment] = useState(null);
+  const [editingCommentContent, setEditingCommentContent] = useState("");
+  const [loadingEditCircle, setLoadingEditCircle] = useState();
+  const handleStartEdit = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditingCommentContent(comment.content);
+    setEditingComment(true);
+  };
 
-  // const handleStartEdit = (comment) => {
-  //   setEditingCommentId(comment.id);
-  //   setEditedContent(comment.content);
-  // };
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+    setEditingCommentContent("");
+  };
 
-  // const handleCancelEdit = () => {
-  //   setEditingCommentId(null);
-  //   setEditedContent("");
-  // };
+  const handleSaveEdit = async (commentId) => {
+    setLoadingEditCircle(true);
+    if (!editingCommentContent.trim()) return;
 
-  // const handleSaveEdit = async (commentId) => {
-  //   if (!editedContent.trim()) return;
-
-  //   try {
-  //     await updateComment(commentId, editedContent.trim()); // implement this in your context/api
-  //     await getComments(id); // refresh comments
-  //     setEditingCommentId(null);
-  //     setEditedContent("");
-  //   } catch (error) {
-  //     console.error("Failed to update comment", error);
-  //   }
-  // };
+    try {
+      await updateComment(id, commentId, editingCommentContent.trim()); // implement this in your context/api
+      await getComments(id); // refresh comments
+      setEditingCommentId(null);
+      setEditingCommentContent("");
+    } catch (error) {
+      console.error("Failed to update comment", error);
+    }
+    setLoadingEditCircle(false);
+  };
 
   //
   return (
@@ -398,6 +408,7 @@ export default function Product() {
                     await fetchProduct(id);
                     window.scrollTo(0, 0);
                     // setSnackbarOpen(true);
+
                     setRating(0);
                   }}
                   sx={{ marginBlock: "1rem" }}
@@ -443,6 +454,7 @@ export default function Product() {
                             async () => {
                               setSubmitting(true);
                               await createComment(id, newComment);
+                              await getComments(id);
                               setSubmitting(false);
                               setNewComment("");
                             }
@@ -460,6 +472,8 @@ export default function Product() {
                           ) : (
                             comments.map(
                               ({ id, userId, lastModify, content }) => {
+                                const isEditing = editingCommentId === id;
+                                const isOwner = user.id === userId;
                                 return (
                                   <Box
                                     key={id}
@@ -473,8 +487,14 @@ export default function Product() {
                                   >
                                     <Typography
                                       variant="subtitle2"
-                                      sx={{ fontWeight: "bold" }}
+                                      sx={{
+                                        fontWeight: "bold",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                      }}
                                     >
+                                      By :{" "}
                                       {commentUsers[userId]?.name ||
                                         "Loading..."}
                                       <Typography
@@ -490,14 +510,111 @@ export default function Product() {
                                           lastModify
                                         ).toLocaleDateString()}
                                       </Typography>
+                                      {isOwner && (
+                                        <Box>
+                                          {isEditing ? (
+                                            <>
+                                              <IconButton
+                                                size="small"
+                                                color="primary"
+                                                onClick={() =>
+                                                  handleSaveEdit(id)
+                                                }
+                                                aria-label="save"
+                                                disabled={loadingEditCircle}
+                                              >
+                                                {loadingEditCircle ? (
+                                                  <CircularProgress size={24} />
+                                                ) : (
+                                                  <SaveIcon fontSize="small" />
+                                                )}
+                                              </IconButton>
+                                              <IconButton
+                                                size="small"
+                                                color="inherit"
+                                                onClick={handleCancelEdit}
+                                                aria-label="cancel"
+                                                disabled={loadingCircle}
+                                              >
+                                                <CancelIcon fontSize="small" />
+                                              </IconButton>
+                                            </>
+                                          ) : (
+                                            <>
+                                              <IconButton
+                                                size="small"
+                                                color="primary"
+                                                onClick={() =>
+                                                  handleStartEdit({
+                                                    id,
+                                                    content,
+                                                  })
+                                                }
+                                                aria-label="edit"
+                                              >
+                                                <EditIcon fontSize="small" />
+                                              </IconButton>
+                                              <IconButton
+                                                size="small"
+                                                color="error"
+                                                onClick={async () => {
+                                                  setLoadingCircle(true);
+                                                  await handleDeleteComment(id);
+                                                  setLoadingCircle(false);
+                                                }}
+                                                aria-label="delete"
+                                                disabled={loadingCircle}
+                                              >
+                                                {loadingCircle ? (
+                                                  <CircularProgress size={24} />
+                                                ) : (
+                                                  <DeleteIcon fontSize="small" />
+                                                )}
+                                              </IconButton>
+                                            </>
+                                          )}
+                                        </Box>
+                                      )}
                                     </Typography>
-                                    <Typography variant="body2">
-                                      {content}
-                                    </Typography>
+
+                                    {isEditing ? (
+                                      <TextField
+                                        multiline
+                                        minRows={3}
+                                        fullWidth
+                                        variant="outlined"
+                                        value={editingCommentContent}
+                                        onChange={(e) =>
+                                          setEditingCommentContent(
+                                            e.target.value
+                                          )
+                                        }
+                                        disabled={loadingCircle}
+                                        sx={{ mt: 1 }}
+                                      />
+                                    ) : (
+                                      <Typography
+                                        variant="body2"
+                                        sx={{ textAlign: "left", mt: 1 }}
+                                      >
+                                        {content}
+                                      </Typography>
+                                    )}
                                   </Box>
                                 );
                               }
                             )
+                          )}
+                          {currentCommenstPage < totalCommentsPages && (
+                            <Button
+                              variant="outlined"
+                              color="primary"
+                              onClick={() =>
+                                getComments(id, currentCommenstPage + 1, true)
+                              }
+                            >
+                              Next
+                            </Button>
                           )}
                         </Box>
                       </Box>
