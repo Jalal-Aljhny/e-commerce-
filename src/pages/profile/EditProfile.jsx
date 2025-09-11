@@ -30,7 +30,6 @@ const EditProfilePage = () => {
     user: userRegistered,
   } = useContext(MainContext);
 
-  console.log("userRegistered : ", userRegistered);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const handleShareClick = () => {
     setSnackbarOpen(true);
@@ -119,7 +118,6 @@ const EditProfilePage = () => {
 
   const onSubmit = async (data) => {
     setLoading(true);
-    console.log(data);
 
     try {
       await updateUserData(

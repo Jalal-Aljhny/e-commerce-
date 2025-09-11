@@ -79,7 +79,6 @@ export default function LabTabs() {
     setLoadingCircle(false);
   };
   //
-  console.log(categories);
   return (
     <Box sx={{ width: "100%", typography: "body1", marginBottom: "15rem" }}>
       <TabContext value={value}>

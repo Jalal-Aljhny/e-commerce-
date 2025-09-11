@@ -128,7 +128,7 @@ const Login = () => {
           checked={rememberMe}
           onChange={(event) => {
             setRememberMe(event.target.checked);
-            console.log("remember:", event.target.checked);
+            // console.log("remember:", event.target.checked);
           }}
           style={{
             width: "15px",

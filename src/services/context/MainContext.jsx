@@ -580,9 +580,9 @@ export const MainProvider = ({ children }) => {
       if (image) {
         formData.append("image", image);
       }
-      for (let pair of formData.entries()) {
-        console.log(pair[0] + ": " + pair[1]);
-      }
+      // for (let pair of formData.entries()) {
+      //   console.log(pair[0] + ": " + pair[1]);
+      // }
       await axios.get("/sanctum/csrf-cookie");
       await axios.post(`/api/products/${id}`, formData, {
         headers: {

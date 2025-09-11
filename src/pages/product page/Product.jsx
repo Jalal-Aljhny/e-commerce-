@@ -74,8 +74,6 @@ export default function Product() {
   };
   const handleSave = () => {
     setOpen(false);
-    console.log("quantity : ", dialogValue);
-    console.log("id : ", id);
   };
   //
   return (

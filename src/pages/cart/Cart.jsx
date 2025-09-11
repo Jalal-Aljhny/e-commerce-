@@ -40,8 +40,6 @@ export default function CartPage({ onClose, checkout }) {
     fetchCart();
   }, [fetchCart]);
 
-  console.log(items);
-
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [editingItemId, setEditingItemId] = useState(null);
