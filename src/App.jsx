@@ -20,6 +20,7 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import AddProductForm from "./pages/add product/AddProduct";
 import EditProductForm from "./pages/update product/UpdateProduct";
 import EditProfilePage from "./pages/profile/EditProfile";
+import SellerProfile from "./pages/profile/SellerProfile";
 
 const App = () => {
   const { isAuth, role } = useContext(MainContext);
@@ -44,6 +45,7 @@ const App = () => {
             />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/seller/:seller_id" element={<SellerProfile />} />
           </>
         ) : (
           <>
@@ -56,6 +58,10 @@ const App = () => {
             />
             <Route path="/cart" element={<Navigate to={"/register"} />} />
             <Route path="/checkout" element={<Navigate to={"/register"} />} />
+            <Route
+              path="/seller/:seller_id"
+              element={<Navigate to={"/register"} />}
+            />
           </>
         )}
         {isAuth && role == "user" ? (

@@ -36,8 +36,8 @@ const OrdersTable = () => {
     userOrders,
     fetchCurrentUserOrder,
     fetchOrderItems,
-    getClientSecretForOrder,
-    handleSubmitPayment,
+    createOrder,
+    confirmOrder,
     lastOrderPage,
     currentOrderPage,
     loadMoreUserOrders,
@@ -149,8 +149,10 @@ const OrdersTable = () => {
                       onClick={async () => {
                         handleOpenBackdrop();
                         setLoading(true);
-                        await getClientSecretForOrder(id);
-                        await handleSubmitPayment();
+                        // await getClientSecretForOrder(id);
+                        // await handleSubmitPayment();
+                        await createOrder();
+                        await confirmOrder(id);
                         await fetchCurrentUserOrder();
                         setLoading(false);
                         handleCloseBackdrop();

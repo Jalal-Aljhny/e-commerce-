@@ -14,13 +14,8 @@ import { useNavigate } from "react-router-dom";
 
 export default function Checkout() {
   const [loading, setLoading] = useState(false);
-  const {
-    handleSubmitPayment,
-    stripeSuccess,
-    stripeError,
-    fetchProducts,
-    fetchCart,
-  } = useContext(MainContext);
+  const { confirmOrder, stripeSuccess, stripeError, fetchProducts, fetchCart } =
+    useContext(MainContext);
   const navigate = useNavigate();
 
   const {
@@ -40,12 +35,15 @@ export default function Checkout() {
       return;
     }
     try {
-      await handleSubmitPayment();
+      // await handleSubmitPayment();
+      await confirmOrder();
       await fetchProducts();
       await fetchCart();
+      if (stripeSuccess) {
+        navigate("/dashboard");
+      }
     } finally {
       setLoading(false);
-      navigate("/dashboard");
     }
   };
 

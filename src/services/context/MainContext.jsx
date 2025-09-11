@@ -7,7 +7,7 @@ import {
 } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useStripe } from "@stripe/react-stripe-js";
+// import { useStripe } from "@stripe/react-stripe-js";
 
 axios.defaults.xsrfCookieName = "XSRF-TOKEN";
 axios.defaults.xsrfHeaderName = "X-XSRF-TOKEN";
@@ -34,8 +34,8 @@ export const MainProvider = ({ children }) => {
   const [registerError, setRegisterError] = useState(null);
   const [items, setItems] = useState([]);
   const [productData, setProductData] = useState(null);
-  const [clientSecret, setClientSecret] = useState(null);
-  const [orderId, setOrderId] = useState(null);
+  // const [clientSecret, setClientSecret] = useState(null);
+  const [order_Id, setOrderId] = useState(null);
   const clearRegisterError = () => {
     setRegisterError(null);
   };
@@ -86,6 +86,12 @@ export const MainProvider = ({ children }) => {
       checkAuth();
     }
   }, [checkAuth, user]);
+  const [authChecked, setAuthChecked] = useState(false);
+  useEffect(() => {
+    if (!authChecked) {
+      checkAuth().finally(() => setAuthChecked(true));
+    }
+  }, [authChecked, checkAuth]);
 
   // const checkUser = useCallback(async (userId) => {
   //   try {
@@ -136,9 +142,9 @@ export const MainProvider = ({ children }) => {
     }
   }, [currentUsersPage, getUsers, lastUsersPage]);
 
-  useEffect(() => {
-    getUsers(1, false);
-  }, [getUsers]);
+  // useEffect(() => {
+  //   getUsers(1, false);
+  // }, [getUsers]);
 
   const getUser = useCallback(async (userId) => {
     try {
@@ -753,17 +759,17 @@ export const MainProvider = ({ children }) => {
       console.error("Error fetching current user orders:", error);
     }
   }, []);
-  const getClientSecretForOrder = useCallback(async (id) => {
-    try {
-      const response = await axios.get(`/api/orders/${id}/client-secret`, {
-        withCredentials: true,
-        headers: { Accept: "application/json" },
-      });
-      setClientSecret(response.data.clientSecret);
-    } catch (error) {
-      console.error("Error fetching current user orders:", error);
-    }
-  }, []);
+  // const getClientSecretForOrder = useCallback(async (id) => {
+  //   try {
+  //     const response = await axios.get(`/api/orders/${id}/client-secret`, {
+  //       withCredentials: true,
+  //       headers: { Accept: "application/json" },
+  //     });
+  //     // setClientSecret(response.data.clientSecret);
+  //   } catch (error) {
+  //     console.error("Error fetching current user orders:", error);
+  //   }
+  // }, []);
   const [currentAllOrdersPage, setCurrentAllOrdersPage] = useState(1);
   const [lastAllOrdersPage, setLastAllOrdersPage] = useState(null);
   const getOrders = useCallback(async (page = 1, append = false) => {
@@ -789,9 +795,9 @@ export const MainProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    getOrders(1, false);
-  }, [getOrders]);
+  // useEffect(() => {
+  //   getOrders(1, false);
+  // }, [getOrders]);
 
   const cancelOrder = useCallback(async (id) => {
     try {
@@ -805,6 +811,7 @@ export const MainProvider = ({ children }) => {
   const fetchCart = useCallback(async () => {
     try {
       const response = await axios.get("/api/cart");
+      console.log(response);
       setItems(response.data.items);
     } catch (err) {
       console.log("Failed to load cart");
@@ -878,7 +885,7 @@ export const MainProvider = ({ children }) => {
     }
   };
 
-  const createPaymentIntent = async () => {
+  const createOrder = async () => {
     try {
       await axios.get("/sanctum/csrf-cookie");
       const response = await axios.post(
@@ -893,45 +900,94 @@ export const MainProvider = ({ children }) => {
           withCredentials: true,
         }
       );
-      setClientSecret(response.data.clientSecret);
+      // setClientSecret(response.data.clientSecret);
       // setOrderId(response.data.orderId);
+      setOrderId(response.data.order.id);
     } catch (err) {
       console.log(
         err.response?.data?.message || "Failed to create payment intent"
       );
     }
   };
-  // console.log("clientSecret : ", clientSecret?.split("_secret_")[0]);
-  // console.log("orderId : ", orderId);
 
-  //
-  // const handleSubmitPayment = async () => {
-  //   await axios.get("/sanctum/csrf-cookie");
-  //   const response = await apiStripe.post(
-  //     `/payment_intents/${clientSecret?.split("_secret_")[0]}/confirm`
-  //   );
-  //   return response;
-  // };
-  const stripe = useStripe();
+  // const stripe = useStripe();
   const [stripeSuccess, setStripeSuccess] = useState(false);
   const [stripeError, setStripeError] = useState(null);
-  const handleSubmitPayment = async () => {
-    await axios.get("/sanctum/csrf-cookie");
+  const confirmOrder = async (orderId) => {
+    orderId = orderId ? orderId : order_Id;
     try {
-      if (stripe) {
-        const response = await stripe.confirmCardPayment(clientSecret, {
-          // payment_method: {
-          //   card: "pm_card_visa",
-          // },
+      await axios.get("/sanctum/csrf-cookie");
+      await axios.post(
+        `/api/orders/${orderId}/confirm`,
 
-          payment_method: "pm_card_visa",
-        });
-        console.log(response);
-        setStripeSuccess(true);
-      }
+        { payment_method: "pm_card_visa" },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      setStripeSuccess(false);
     } catch (err) {
+      // try {
+      //   if (stripe) {
+      //     // const response = await stripe.confirmCardPayment( ,{
+      //     //   // payment_method: {
+      //     //   //   card: "pm_card_visa",
+      //     //   // },
+
+      //     //   payment_method: "pm_card_visa",
+      //     // });
+      //     const response = await stripe.createPaymentMethod({
+      //       payment_method: "pm_card_visa",
+      //     });
+      //     console.log("Stripe response : ", response);
+      //     setStripeSuccess(true);
+      //   }
+      // }
       setStripeSuccess(false);
       setStripeError(err.message);
+    }
+  };
+
+  const rateSeller = async (sellerId, stars) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      await axios.post(
+        // "/api/checkout/create-payment-intent",
+        `/api/users/${sellerId}/rating`,
+        { stars: stars },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  const rateProduct = async (id, stars) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      await axios.post(
+        // "/api/checkout/create-payment-intent",
+        `/api/products/${id}/rating`,
+        { stars: stars },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -960,9 +1016,8 @@ export const MainProvider = ({ children }) => {
         items,
         fetchProduct,
         productData,
-        clientSecret,
-        orderId,
-        createPaymentIntent,
+        // clientSecret,
+        // orderId,
         role,
         getUsers,
         users,
@@ -982,7 +1037,7 @@ export const MainProvider = ({ children }) => {
         userOrders,
         fetchCurrentUserOrder,
         getOrders,
-        handleSubmitPayment,
+
         stripeSuccess,
         stripeError,
         updateUserData,
@@ -991,7 +1046,7 @@ export const MainProvider = ({ children }) => {
         srchProducts,
         mode,
         fetchOrderItems,
-        getClientSecretForOrder,
+
         currentPage,
         lastPage,
         loadMoreProducts,
@@ -1004,6 +1059,13 @@ export const MainProvider = ({ children }) => {
         currentAllOrdersPage,
         lastAllOrdersPage,
         loadMoreOrders,
+        // getClientSecretForOrder,
+        //         handleSubmitPayment,
+        // createPaymentIntent,
+        createOrder,
+        confirmOrder,
+        rateSeller,
+        rateProduct,
       }}
     >
       {children}

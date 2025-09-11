@@ -30,7 +30,7 @@ export default function CartPage({ onClose, checkout }) {
     fetchCart,
     removeFromCart,
     updateItemQuantity,
-    createPaymentIntent,
+    createOrder,
     fetchProduct,
     productData,
   } = useContext(MainContext);
@@ -39,6 +39,8 @@ export default function CartPage({ onClose, checkout }) {
   useEffect(() => {
     fetchCart();
   }, [fetchCart]);
+
+  console.log(items);
 
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
@@ -242,7 +244,7 @@ export default function CartPage({ onClose, checkout }) {
                 size="large"
                 onClick={async () => {
                   handleOpenCheckoutBackdrop();
-                  await createPaymentIntent();
+                  await createOrder();
                   navigate("/checkout");
                   onClose();
                   handleCloseCheckoutBackdrop();
