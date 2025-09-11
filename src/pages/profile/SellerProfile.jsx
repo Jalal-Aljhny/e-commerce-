@@ -29,7 +29,7 @@ import ProfileSkeleton from "./ProfileSkeleton";
 import RatingDisplay from "../../components/RatingOutput";
 
 const ProfilePage = () => {
-  const { getUser, rateSeller } = useContext(MainContext);
+  const { getUser, rateSeller, isAuth } = useContext(MainContext);
   const [user, setUser] = useState(null);
   const id = location.pathname.split("/")[2];
   const navigate = useNavigate();
@@ -142,41 +142,44 @@ const ProfilePage = () => {
               max={5}
             />
           </Box>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-around",
-              alignItems: "center",
-              marginBlock: "2rem",
-              flexDirection: "column",
-            }}
-          >
-            <div>
-              <h3>Rate this seller:</h3>
-              <RatingInput value={rating} onChange={setRating} />
-              {rating ? <p>Your rating: {rating} of 5</p> : null}
-            </div>
-            {rating ? (
-              <Button
-                size="small"
-                variant="outlined"
-                color="info"
-                onClick={async () => {
-                  await rateSeller(user?.id, rating);
-                  await getUser(id).then((res) => {
-                    setUser(res.data.user);
-                  });
-                  setSnackbarOpen(true);
-                  setRating(0);
-                  window.scrollTo(0, 0);
-                }}
-                sx={{ marginBlock: "1rem" }}
-                disabled={!rating}
-              >
-                Send Rate
-              </Button>
-            ) : null}
-          </Box>
+          {isAuth ? (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-around",
+                alignItems: "center",
+                marginBlock: "2rem",
+                flexDirection: "column",
+              }}
+            >
+              <div>
+                <h3>Rate this seller:</h3>
+                <RatingInput value={rating} onChange={setRating} />
+                {rating ? <p>Your rating: {rating} of 5</p> : null}
+              </div>
+
+              {rating ? (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="info"
+                  onClick={async () => {
+                    await rateSeller(user?.id, rating);
+                    await getUser(id).then((res) => {
+                      setUser(res.data.user);
+                    });
+                    setSnackbarOpen(true);
+                    setRating(0);
+                    window.scrollTo(0, 0);
+                  }}
+                  sx={{ marginBlock: "1rem" }}
+                  disabled={!rating}
+                >
+                  Send Rate
+                </Button>
+              ) : null}
+            </Box>
+          ) : null}
 
           <Accordion>
             <AccordionSummary

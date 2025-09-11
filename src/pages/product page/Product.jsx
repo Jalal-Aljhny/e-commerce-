@@ -167,32 +167,34 @@ export default function Product() {
               {productData?.description}
             </Typography>
 
-            <Typography
-              variant="body2"
-              sx={{
-                color: "text.secondary",
-                marginBlock: "1rem",
-              }}
-            >
-              <span style={{ fontWeight: "bold" }}>Created By :</span>
-              <Box
-                component={"span"}
+            {isAuth ? (
+              <Typography
+                variant="body2"
                 sx={{
-                  transitionDuration: "300ms",
-                  padding: "0.75rem",
-                  borderRadius: "2rem",
-                  "&:hover": {
-                    boxShadow: "1px 1px 5px ",
-                  },
-                  cursor: "pointer",
-                }}
-                onClick={() => {
-                  navigate(`/seller/${seller.id}`);
+                  color: "text.secondary",
+                  marginBlock: "1rem",
                 }}
               >
-                {seller?.name}
-              </Box>
-            </Typography>
+                <span style={{ fontWeight: "bold" }}>Created By :</span>
+                <Box
+                  component={"span"}
+                  sx={{
+                    transitionDuration: "300ms",
+                    padding: "0.75rem",
+                    borderRadius: "2rem",
+                    "&:hover": {
+                      boxShadow: "1px 1px 5px ",
+                    },
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    navigate(`/seller/${seller.id}`);
+                  }}
+                >
+                  {seller?.name}
+                </Box>
+              </Typography>
+            ) : null}
             <Typography
               sx={{
                 display: "flex",
@@ -280,42 +282,45 @@ export default function Product() {
               max={5}
             />
           </Box>
-          <hr />
+          {isAuth ? <hr /> : null}
 
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-around",
-              alignItems: "center",
-              marginBlock: "2rem",
-              flexDirection: "column",
-              textAlign: "center",
-            }}
-          >
-            <div>
-              <h3>Rate this seller:</h3>
-              <RatingInput value={rating} onChange={setRating} />
-              {rating ? <p>Your rating: {rating} of 5</p> : null}
-            </div>
-            {rating ? (
-              <Button
-                size="small"
-                variant="outlined"
-                color="info"
-                onClick={async () => {
-                  await rateProduct(productData?.id, rating);
-                  await fetchProduct(id);
-                  window.scrollTo(0, 0);
-                  // setSnackbarOpen(true);
-                  setRating(0);
-                }}
-                sx={{ marginBlock: "1rem" }}
-                disabled={!rating}
-              >
-                Send Rate
-              </Button>
-            ) : null}
-          </Box>
+          {isAuth ? (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-around",
+                alignItems: "center",
+                marginBlock: "2rem",
+                flexDirection: "column",
+                textAlign: "center",
+              }}
+            >
+              <div>
+                <h3>Rate this seller:</h3>
+                <RatingInput value={rating} onChange={setRating} />
+                {rating ? <p>Your rating: {rating} of 5</p> : null}
+              </div>
+
+              {rating ? (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="info"
+                  onClick={async () => {
+                    await rateProduct(productData?.id, rating);
+                    await fetchProduct(id);
+                    window.scrollTo(0, 0);
+                    // setSnackbarOpen(true);
+                    setRating(0);
+                  }}
+                  sx={{ marginBlock: "1rem" }}
+                  disabled={!rating}
+                >
+                  Send Rate
+                </Button>
+              ) : null}
+            </Box>
+          ) : null}
         </Card>
       ) : (
         <CustomCardSkeleton />

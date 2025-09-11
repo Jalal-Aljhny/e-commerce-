@@ -90,7 +90,6 @@ const Products = () => {
   const handleCloseBackdrop = () => setOpenBackdrop(false);
   const handleOpenBackdrop = () => setOpenBackdrop(true);
 
-  console.log("products : ", products);
   return (
     <section style={{ marginBottom: "15rem" }}>
       {mode == "search" ? (
