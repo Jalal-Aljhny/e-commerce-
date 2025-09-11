@@ -5,20 +5,31 @@ import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Typography from "@mui/material/Typography";
 import ShareIcon from "@mui/icons-material/Share";
 import Button from "@mui/material/Button";
 import { convertDate } from "../../utils/convertDate";
 import { useContext, useEffect, useRef, useState } from "react";
 import { MainContext } from "../../services/context/MainContext";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import SaveIcon from "@mui/icons-material/Save";
+import CancelIcon from "@mui/icons-material/Cancel";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Box,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Paper,
   Snackbar,
+  TableContainer,
   TextField,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
@@ -27,8 +38,18 @@ import ArrowBackSharpIcon from "@mui/icons-material/ArrowBackSharp";
 import RatingInput from "../../components/RatingInput";
 import RatingDisplay from "../../components/RatingOutput";
 export default function Product() {
-  const { productData, fetchProduct, isAuth, getUser, rateProduct } =
-    useContext(MainContext);
+  const {
+    productData,
+    fetchProduct,
+    isAuth,
+    getUser,
+    rateProduct,
+    addToCart,
+    createComment,
+    getComments,
+    comments,
+    deleteComment,
+  } = useContext(MainContext);
   const id = location.pathname.split("/")[2];
   const isMount = useRef(false);
   useEffect(() => {
@@ -37,8 +58,32 @@ export default function Product() {
       isMount.current = true;
     }
   }, [fetchProduct, id]);
+  useEffect(() => {
+    getComments(id);
+  }, [getComments, id]);
   const [seller, setSeller] = useState();
   const [rating, setRating] = useState(0);
+  const [newComment, setNewComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [commentUsers, setCommentUsers] = useState({});
+
+  useEffect(() => {
+    if (!comments || comments.length === 0) return;
+
+    const uniqueUserIds = [...new Set(comments.map((c) => c.userId))];
+
+    Promise.all(
+      uniqueUserIds.map((userId) =>
+        getUser(userId).then((res) => ({ userId, user: res.data.user }))
+      )
+    ).then((results) => {
+      const usersMap = {};
+      results.forEach(({ userId, user }) => {
+        usersMap[userId] = user;
+      });
+      setCommentUsers(usersMap);
+    });
+  }, [comments, getUser]);
 
   useEffect(() => {
     if (productData) {
@@ -72,9 +117,48 @@ export default function Product() {
   const handleClose = () => {
     setOpen(false);
   };
-  const handleSave = () => {
+  const [productId, setProductId] = useState(null);
+  const [loadingCircle, setLoadingCircle] = useState(false);
+  const handleSave = async () => {
+    setLoadingCircle(true);
+    await addToCart(productId, dialogValue);
+    // alert(`You entered: ${value}`);
     setOpen(false);
+    setLoadingCircle(false);
   };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await deleteComment(commentId);
+      await getComments(id);
+    } catch (error) {
+      console.error("Failed to delete comment", error);
+    }
+  };
+
+  // const handleStartEdit = (comment) => {
+  //   setEditingCommentId(comment.id);
+  //   setEditedContent(comment.content);
+  // };
+
+  // const handleCancelEdit = () => {
+  //   setEditingCommentId(null);
+  //   setEditedContent("");
+  // };
+
+  // const handleSaveEdit = async (commentId) => {
+  //   if (!editedContent.trim()) return;
+
+  //   try {
+  //     await updateComment(commentId, editedContent.trim()); // implement this in your context/api
+  //     await getComments(id); // refresh comments
+  //     setEditingCommentId(null);
+  //     setEditedContent("");
+  //   } catch (error) {
+  //     console.error("Failed to update comment", error);
+  //   }
+  // };
+
   //
   return (
     <section
@@ -133,9 +217,11 @@ export default function Product() {
                 color: "#fff",
               },
             }}
-            onClick={() =>
-              navigate(`/categories?name=${productData?.categories[0]?.name}`)
-            }
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              navigate(`/categories?name=${productData?.categories[0]?.name}`);
+            }}
           >
             {productData?.categories[0]?.name}
           </Typography>
@@ -174,7 +260,7 @@ export default function Product() {
                 marginBlock: "1rem",
               }}
             >
-              <span style={{ fontWeight: "bold" }}>Created By :</span>
+              <span style={{ fontWeight: "bold" }}>Added By :</span>
               <Box
                 component={"span"}
                 sx={{
@@ -236,9 +322,11 @@ export default function Product() {
           <CardActions disableSpacing>
             <IconButton
               aria-label="share"
-              onClick={() => {
-                navigator.clipboard.writeText(location.href);
+              onClick={(e) => {
                 // onShare();
+                e.stopPropagation();
+                e.preventDefault();
+                navigator.clipboard.writeText(location.href);
                 handleShareClick();
               }}
             >
@@ -261,6 +349,7 @@ export default function Product() {
               }}
               onClick={() => {
                 handleOpen();
+                setProductId(productData.id);
               }}
             >
               Add to cart
@@ -295,11 +384,10 @@ export default function Product() {
               }}
             >
               <div>
-                <h3>Rate this seller:</h3>
+                <h3>Rate this product:</h3>
                 <RatingInput value={rating} onChange={setRating} />
                 {rating ? <p>Your rating: {rating} of 5</p> : null}
               </div>
-
               {rating ? (
                 <Button
                   size="small"
@@ -317,6 +405,105 @@ export default function Product() {
                 >
                   Send Rate
                 </Button>
+              ) : null}
+              {isAuth ? (
+                <Accordion>
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    aria-controls="panel4-content"
+                    id="panel4-header"
+                  >
+                    <Typography component="span">Comments </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <TableContainer
+                      sx={{ maxWidth: 900, margin: "auto", mt: 4 }}
+                    >
+                      <Box sx={{ mt: 3, width: "100%" }}>
+                        <Typography variant="h6" gutterBottom>
+                          Add a comment
+                        </Typography>
+                        <TextField
+                          multiline
+                          minRows={3}
+                          fullWidth
+                          variant="outlined"
+                          placeholder="Write your comment here..."
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          disabled={submitting}
+                        />
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          sx={{ mt: 1 }}
+                          onClick={
+                            // handleCommentSubmit
+                            // console.log(newComment)
+                            async () => {
+                              setSubmitting(true);
+                              await createComment(id, newComment);
+                              setSubmitting(false);
+                              setNewComment("");
+                            }
+                          }
+                          disabled={submitting || !newComment.trim()}
+                        >
+                          {submitting ? "Submitting..." : "Submit Comment"}
+                        </Button>
+
+                        <Box sx={{ mt: 4, width: "100%" }}>
+                          {comments.length === 0 ? (
+                            <Typography variant="body2" color="text.secondary">
+                              No comments yet.
+                            </Typography>
+                          ) : (
+                            comments.map(
+                              ({ id, userId, lastModify, content }) => {
+                                return (
+                                  <Box
+                                    key={id}
+                                    sx={{
+                                      mb: 2,
+                                      p: 2,
+                                      borderRadius: 2,
+                                      backgroundColor: "#f5f5f5",
+                                      boxShadow: 1,
+                                    }}
+                                  >
+                                    <Typography
+                                      variant="subtitle2"
+                                      sx={{ fontWeight: "bold" }}
+                                    >
+                                      {commentUsers[userId]?.name ||
+                                        "Loading..."}
+                                      <Typography
+                                        component="span"
+                                        sx={{
+                                          fontWeight: "normal",
+                                          color: "text.secondary",
+                                          ml: 1,
+                                          fontSize: "0.8rem",
+                                        }}
+                                      >
+                                        {new Date(
+                                          lastModify
+                                        ).toLocaleDateString()}
+                                      </Typography>
+                                    </Typography>
+                                    <Typography variant="body2">
+                                      {content}
+                                    </Typography>
+                                  </Box>
+                                );
+                              }
+                            )
+                          )}
+                        </Box>
+                      </Box>
+                    </TableContainer>
+                  </AccordionDetails>
+                </Accordion>
               ) : null}
             </Box>
           ) : null}
@@ -359,8 +546,11 @@ export default function Product() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSave} disabled={!dialogValue}>
-            Add
+          <Button
+            onClick={handleSave}
+            disabled={!dialogValue.trim() || loadingCircle}
+          >
+            {loadingCircle ? <CircularProgress size={24} /> : "Add"}
           </Button>
         </DialogActions>
       </Dialog>

@@ -70,10 +70,7 @@ const OrdersTable = () => {
   };
 
   return (
-    <TableContainer
-      component={Paper}
-      sx={{ maxWidth: 900, margin: "auto", mt: 15 }}
-    >
+    <TableContainer sx={{ maxWidth: 900, margin: "auto", mt: 15 }}>
       <Table>
         <TableHead>
           <TableRow>

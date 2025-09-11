@@ -100,7 +100,11 @@ export default function CustomCard({
                 color: "#fff",
               },
             }}
-            onClick={() => navigate(`/categories?name=${categories}`)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate(`/categories?name=${categories}`);
+            }}
           >
             {categories}
           </Typography>
@@ -135,7 +139,9 @@ export default function CustomCard({
       <CardActions disableSpacing>
         <IconButton
           aria-label="share"
-          onClick={() => {
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
             if (location.href.endsWith("/products")) {
               navigator.clipboard.writeText(location.href + `/${id}`);
             } else {
@@ -145,11 +151,12 @@ export default function CustomCard({
             }
             onShare();
           }}
+          sx={{ zIndex: "10000" }}
         >
           <ShareIcon />
         </IconButton>
 
-        <Button
+        {/* <Button
           size="small"
           variant="outlined"
           color="#b4b4b4"
@@ -168,7 +175,7 @@ export default function CustomCard({
           }}
         >
           Add to cart
-        </Button>
+        </Button> */}
       </CardActions>
     </Card>
   );

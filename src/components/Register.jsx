@@ -22,9 +22,11 @@ const SignUp = () => {
     registerError,
     clearRegisterError,
   } = use(MainContext);
+  const [loading, setLoading] = useState(false);
 
-  const onSumbit = (data) => {
-    SignUp(
+  const onSumbit = async (data) => {
+    setLoading(true);
+    await SignUp(
       data.username,
       data.email,
       data.password,
@@ -36,6 +38,7 @@ const SignUp = () => {
       // data.country,
       // data.phone
     );
+    setLoading(true);
   };
   // const [image, setImage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -301,8 +304,8 @@ const SignUp = () => {
           style={{ padding: "1rem" }}
         />
       </div> */}
-      <button className="submit" type="submit">
-        Register
+      <button className="submit" type="submit" disabled={loading}>
+        {loading ? "loading ..." : "Register"}
       </button>
       <Link
         to={"/login"}

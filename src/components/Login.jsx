@@ -14,8 +14,11 @@ const Login = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const onSumbit = (data) => {
-    login(data.email, data.password, rememberMe);
+  const [loading, setLoading] = useState(false);
+  const onSumbit = async (data) => {
+    setLoading(true);
+    await login(data.email, data.password, rememberMe);
+    setLoading(false);
   };
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -136,8 +139,8 @@ const Login = () => {
           }}
         />
       </div>
-      <button className="submit" type="submit">
-        Log In
+      <button className="submit" type="submit" disabled={loading}>
+        {loading ? "Loading ..." : "Log In"}
       </button>
     </form>
   );

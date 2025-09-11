@@ -990,6 +990,53 @@ export const MainProvider = ({ children }) => {
       console.log(err);
     }
   };
+  const createComment = async (id, content) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      await axios.post(
+        // "/api/checkout/create-payment-intent",
+        `/api/products/${id}/comments`,
+        { content: content },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  const [comments, setComments] = useState([]);
+  const getComments = useCallback(async (id) => {
+    try {
+      const response = await axios.get(`/api/products/${id}/comments`);
+      setComments(response.data.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }, []);
+  const deleteComment = async (id) => {
+    try {
+      await axios.get("/sanctum/csrf-cookie");
+      await axios.delete(
+        // "/api/checkout/create-payment-intent",
+        `/api/products/${id}/comments/${id}`,
+
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   return (
     <MainContext.Provider
@@ -1066,6 +1113,10 @@ export const MainProvider = ({ children }) => {
         confirmOrder,
         rateSeller,
         rateProduct,
+        createComment,
+        getComments,
+        comments,
+        deleteComment,
       }}
     >
       {children}

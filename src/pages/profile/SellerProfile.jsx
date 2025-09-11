@@ -190,10 +190,7 @@ const ProfilePage = () => {
               <Typography component="span">Seller latest products </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <TableContainer
-                component={Paper}
-                sx={{ maxWidth: 900, margin: "auto", mt: 4 }}
-              >
+              <TableContainer sx={{ maxWidth: 900, margin: "auto", mt: 4 }}>
                 <List>
                   {user?.latestProducts.map(
                     ({

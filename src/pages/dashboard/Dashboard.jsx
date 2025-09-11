@@ -213,10 +213,7 @@ const Dashboard = () => {
           <Typography component="span">Users </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <TableContainer
-            component={Paper}
-            sx={{ maxWidth: 900, margin: "auto", mt: 4 }}
-          >
+          <TableContainer sx={{ maxWidth: 900, margin: "auto", mt: 4 }}>
             <Table>
               <TableHead>
                 <TableRow>
@@ -466,10 +463,7 @@ const Dashboard = () => {
           <Typography component="span">Categories </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <TableContainer
-            component={Paper}
-            sx={{ maxWidth: 900, margin: "auto", mt: 4 }}
-          >
+          <TableContainer sx={{ maxWidth: 900, margin: "auto", mt: 4 }}>
             <Button
               variant="contained"
               color="success"
@@ -542,10 +536,7 @@ const Dashboard = () => {
           <Typography component="span">My orders </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <TableContainer
-            component={Paper}
-            sx={{ maxWidth: 900, margin: "auto", mt: 4 }}
-          >
+          <TableContainer sx={{ maxWidth: 900, margin: "auto", mt: 4 }}>
             <OrdersTable />
           </TableContainer>
         </AccordionDetails>
@@ -560,10 +551,7 @@ const Dashboard = () => {
           <Typography component="span">All orders </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <TableContainer
-            component={Paper}
-            sx={{ maxWidth: 900, margin: "auto", mt: 15 }}
-          >
+          <TableContainer sx={{ maxWidth: 900, margin: "auto", mt: 15 }}>
             <Table>
               <TableHead>
                 <TableRow>
