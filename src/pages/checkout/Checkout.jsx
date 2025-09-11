@@ -39,7 +39,7 @@ export default function Checkout() {
       await confirmOrder();
       await fetchProducts();
       await fetchCart();
-      if (stripeSuccess) {
+      if (!stripeError) {
         navigate("/dashboard");
       }
     } finally {

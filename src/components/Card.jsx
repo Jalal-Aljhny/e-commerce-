@@ -12,6 +12,7 @@ import ShareIcon from "@mui/icons-material/Share";
 import Button from "@mui/material/Button";
 import { convertDate } from "../utils/convertDate";
 import { useNavigate } from "react-router-dom";
+import { Box } from "@mui/material";
 export default function CustomCard({
   id,
   title,
@@ -21,6 +22,7 @@ export default function CustomCard({
   price,
   quantity,
   lastModified,
+  seller,
   onShare,
   onOpen,
 }) {
@@ -109,6 +111,35 @@ export default function CustomCard({
             {categories}
           </Typography>
         </div>
+
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.secondary",
+            marginBlock: "1rem",
+          }}
+        >
+          <span style={{ fontWeight: "bold" }}>Added By :</span>
+          <Box
+            component={"span"}
+            sx={{
+              transitionDuration: "300ms",
+              padding: "0.75rem",
+              borderRadius: "2rem",
+              "&:hover": {
+                boxShadow: "1px 1px 5px ",
+              },
+              cursor: "pointer",
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate(`/seller/${seller?.id}`);
+            }}
+          >
+            {seller?.name}
+          </Box>
+        </Typography>
         <div
           style={{
             display: "flex",

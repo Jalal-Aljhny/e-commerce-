@@ -169,6 +169,11 @@ export default function Product() {
     setLoadingEditCircle(false);
   };
 
+  const myProduct = user.latestProducts?.find(
+    (product) => product.id === productData?.id
+  );
+  const myRating = myProduct?.myRating; // or whatever the rating property is called
+
   //
   return (
     <section
@@ -393,8 +398,18 @@ export default function Product() {
                 textAlign: "center",
               }}
             >
+              {myRating ? (
+                <div
+                  style={{
+                    marginBottom: "1rem",
+                  }}
+                >
+                  <p>My rating :</p>
+                  <RatingDisplay count={myRating} average={myRating} />
+                </div>
+              ) : null}
               <div>
-                <h3>Rate this product:</h3>
+                <h3>Rate this product {myRating ? "again" : null}:</h3>
                 <RatingInput value={rating} onChange={setRating} />
                 {rating ? <p>Your rating: {rating} of 5</p> : null}
               </div>
@@ -474,6 +489,7 @@ export default function Product() {
                               ({ id, userId, lastModify, content }) => {
                                 const isEditing = editingCommentId === id;
                                 const isOwner = user.id === userId;
+                                console.log(isOwner);
                                 return (
                                   <Box
                                     key={id}

@@ -124,6 +124,7 @@ export default function LabTabs() {
                         price={product.price}
                         quantity={product.quantity}
                         lastModified={product.lastModified}
+                        seller={product.seller}
                         onShare={handleShareClick}
                         onOpen={() => {
                           setProductId(product.id);
