@@ -30,7 +30,7 @@ export const MainContext = createContext();
 
 export const MainProvider = ({ children }) => {
   const [passwordErrors, setPasswordErrors] = useState([]);
-  const [isAuth, setIsAuth] = useState(false);
+  // const [isAuth, setIsAuth] = useState(false);
   const [registerError, setRegisterError] = useState(null);
   const [items, setItems] = useState([]);
   const [productData, setProductData] = useState(null);
@@ -45,65 +45,100 @@ export const MainProvider = ({ children }) => {
   };
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
-  const [user, setUser] = useState(null);
-  const [role, setRole] = useState(null);
+
+  const [user, setUser] = useState(() => {
+    try {
+      const storedUser = sessionStorage.getItem("user");
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [isAuth, setIsAuth] = useState(() => !!user);
+  const [role, setRole] = useState(() =>
+    user?.role?.includes("Super Admin") ? "super" : "user"
+  );
 
   const checkAuth = useCallback(async () => {
     try {
       await axios.get("/sanctum/csrf-cookie");
       const response = await axios.get("/api/user", { withCredentials: true });
-      console.log(" check Auth func :", response);
-
-      setUser(response.data.data);
+      const userData = response.data.data;
+      setUser(userData);
       setIsAuth(true);
+      setRole(userData.role?.includes("Super Admin") ? "super" : "user");
+      sessionStorage.setItem("user", JSON.stringify(userData));
 
       if (sessionStorage.getItem("pre_page")) {
         navigate(sessionStorage.getItem("pre_page"));
-        sessionStorage.clear();
+        sessionStorage.removeItem("pre_page");
       }
     } catch {
-      console.log("not logged in");
-      setIsAuth(false);
       setUser(null);
+      setIsAuth(false);
+      setRole(null);
+      sessionStorage.removeItem("user");
     }
   }, [navigate]);
 
-  const checkUser = useCallback(async (userId) => {
-    try {
-      await axios.get("/sanctum/csrf-cookie");
-      const response = await axios.get(`/api/users/${userId}`, {
-        withCredentials: true,
-      });
-      console.log(" check user func :", response);
-      console.log("role : ", response.data.user.role);
-      if (response.data.user.role.includes("Super Admin")) {
-        setRole("super");
-      } else {
-        setRole("user");
-      }
-    } catch (error) {
-      console.log(error);
-      console.log("failed to get user role");
-      setRole(null);
+  useEffect(() => {
+    if (!user) {
+      checkAuth();
     }
-  }, []);
+  }, [checkAuth, user]);
+
+  // const checkUser = useCallback(async (userId) => {
+  //   try {
+  //     await axios.get("/sanctum/csrf-cookie");
+  //     const response = await axios.get(`/api/users/${userId}`, {
+  //       withCredentials: true,
+  //     });
+  //     console.log(" check user func :", response);
+  //     console.log("role : ", response.data.user.role);
+  //     if (response.data.user.role.includes("Super Admin")) {
+  //       setRole("super");
+  //     } else {
+  //       setRole("user");
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //     console.log("failed to get user role");
+  //     setRole(null);
+  //   }
+  // }, []);
   const [users, setUsers] = useState([]);
-  const getUsers = useCallback(async () => {
+  const [currentUsersPage, setCurrentUsersPage] = useState(1);
+  const [lastUsersPage, setLastUsersPage] = useState(null);
+
+  const getUsers = useCallback(async (page = 1, append = false) => {
     try {
-      const response = await axios.get("/api/users", {
+      const response = await axios.get(`/api/users?page=${page}`, {
         headers: {
           Accept: "application/json",
           "X-Requested-With": "XMLHttpRequest",
         },
         withCredentials: true,
       });
-      console.log("users : ", response.data.data);
-      setUsers(response.data.data);
+      const newUsers = response.data.data;
+      setUsers((prevUsers) =>
+        append ? [...prevUsers, ...newUsers] : newUsers
+      );
+      setCurrentUsersPage(response.data.meta.current_page);
+      setLastUsersPage(response.data.meta.last_page);
     } catch (error) {
-      console.log(error);
-      console.log("failed to get users ");
+      console.error("Failed to get users", error);
     }
   }, []);
+
+  const loadMoreUsers = useCallback(() => {
+    if (currentUsersPage < lastUsersPage) {
+      getUsers(currentUsersPage + 1, true);
+    }
+  }, [currentUsersPage, getUsers, lastUsersPage]);
+
+  useEffect(() => {
+    getUsers(1, false);
+  }, [getUsers]);
 
   const getUser = useCallback(async (userId) => {
     try {
@@ -120,16 +155,16 @@ export const MainProvider = ({ children }) => {
       console.log("failed to get user ");
     }
   }, []);
+  // [ ] testing
+  // useEffect(() => {
+  //   checkAuth();
+  // }, [checkAuth]);
 
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  useEffect(() => {
-    if (user?.id) {
-      checkUser(user.id);
-    }
-  }, [user, checkUser]);
+  // useEffect(() => {
+  //   if (user?.id) {
+  //     checkUser(user.id);
+  //   }
+  // }, [user, checkUser]);
 
   const updateUserData = async (
     userId,
@@ -405,7 +440,10 @@ export const MainProvider = ({ children }) => {
         return {
           ...state,
           loading: false,
-          products: action.payload,
+          products: action.append
+            ? [...state.products, ...action.payload]
+            : action.payload,
+
           error: null,
         };
       case "FETCH_FAILURE":
@@ -424,22 +462,30 @@ export const MainProvider = ({ children }) => {
     error: null,
   };
   const [state, dispatch] = useReducer(productsReducer, initialDataProducts);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(null);
 
-  const fetchProducts = async (page = 1) => {
+  const fetchProducts = async (page = 1, append = false) => {
     dispatch({ type: "FETCH_INIT" });
     try {
       const response = await axios.get(`/api/products?page=${page}`, {
         withCredentials: true,
         headers: { Accept: "application/json" },
       });
-      dispatch({ type: "FETCH_SUCCESS", payload: response.data.data });
-      console.log(response.data);
+      dispatch({ type: "FETCH_SUCCESS", payload: response.data.data, append });
+      setCurrentPage(response.data.meta.current_page);
+      setLastPage(response.data.meta.last_page);
     } catch (error) {
       dispatch({
         type: "FETCH_FAILURE",
         payload: error.message || "Error fetching products",
       });
       console.error("Error fetching products:", error);
+    }
+  };
+  const loadMoreProducts = () => {
+    if (currentPage < lastPage) {
+      fetchProducts(currentPage + 1, true);
     }
   };
   useEffect(() => {
@@ -664,17 +710,38 @@ export const MainProvider = ({ children }) => {
   // orders
   const [allOrders, setAllOrders] = useState([]);
   const [userOrders, setUserOrders] = useState([]);
-  const fetchCurrentUserOrder = useCallback(async () => {
-    try {
-      const response = await axios.get("/api/orders/my-orders", {
-        withCredentials: true,
-        headers: { Accept: "application/json" },
-      });
-      setUserOrders(response.data.data);
-    } catch (error) {
-      console.error("Error fetching current user orders:", error);
+  const [currentOrderPage, setCurrentOrderPage] = useState(1);
+  const [lastOrderPage, setLastOrderPage] = useState(null);
+  const fetchCurrentUserOrder = useCallback(
+    async (page = 1, append = false) => {
+      try {
+        const response = await axios.get(`/api/orders/my-orders?page=${page}`, {
+          withCredentials: true,
+          headers: { Accept: "application/json" },
+        });
+        const newOrders = response.data.data;
+        setUserOrders((prevOrders) =>
+          append ? [...prevOrders, ...newOrders] : newOrders
+        );
+        setCurrentOrderPage(response.data.meta.current_page);
+        setLastOrderPage(response.data.meta.last_page);
+      } catch (error) {
+        console.error("Error fetching current user orders:", error);
+      }
+    },
+    []
+  );
+
+  const loadMoreUserOrders = () => {
+    if (currentOrderPage < lastOrderPage) {
+      fetchCurrentUserOrder(currentOrderPage + 1, true);
     }
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchCurrentUserOrder(1, false);
+  }, [fetchCurrentUserOrder]);
+
   const fetchOrderItems = useCallback(async (id) => {
     try {
       const response = await axios.get(`/api/orders/${id}`, {
@@ -697,14 +764,35 @@ export const MainProvider = ({ children }) => {
       console.error("Error fetching current user orders:", error);
     }
   }, []);
-  const getOrders = useCallback(async () => {
+  const [currentAllOrdersPage, setCurrentAllOrdersPage] = useState(1);
+  const [lastAllOrdersPage, setLastAllOrdersPage] = useState(null);
+  const getOrders = useCallback(async (page = 1, append = false) => {
     try {
-      const response = await axios.get("/api/orders");
-      setAllOrders(response.data.data);
+      const response = await axios.get(`/api/orders?page=${page}`, {
+        withCredentials: true,
+        headers: { Accept: "application/json" },
+      });
+      const newOrders = response.data.data;
+      setAllOrders((prevOrders) =>
+        append ? [...prevOrders, ...newOrders] : newOrders
+      );
+      setCurrentAllOrdersPage(response.data.meta.current_page);
+      setLastAllOrdersPage(response.data.meta.last_page);
     } catch (err) {
-      console.log("Failed to load orders", err);
+      console.error("Failed to load orders", err);
     }
   }, []);
+
+  const loadMoreOrders = () => {
+    if (currentAllOrdersPage < lastAllOrdersPage) {
+      getOrders(currentAllOrdersPage + 1, true);
+    }
+  };
+
+  useEffect(() => {
+    getOrders(1, false);
+  }, [getOrders]);
+
   const cancelOrder = useCallback(async (id) => {
     try {
       await axios.get("/sanctum/csrf-cookie");
@@ -718,7 +806,6 @@ export const MainProvider = ({ children }) => {
     try {
       const response = await axios.get("/api/cart");
       setItems(response.data.items);
-      console.log(response.data.items);
     } catch (err) {
       console.log("Failed to load cart");
       console.log(err);
@@ -743,7 +830,6 @@ export const MainProvider = ({ children }) => {
         }
       );
       setItems(response.data.items);
-      console.log(response.data.items);
       // setError(null);
     } catch (err) {
       if (err.response && err.response.data) {
@@ -906,6 +992,18 @@ export const MainProvider = ({ children }) => {
         mode,
         fetchOrderItems,
         getClientSecretForOrder,
+        currentPage,
+        lastPage,
+        loadMoreProducts,
+        currentUsersPage,
+        lastUsersPage,
+        loadMoreUsers,
+        lastOrderPage,
+        currentOrderPage,
+        loadMoreUserOrders,
+        currentAllOrdersPage,
+        lastAllOrdersPage,
+        loadMoreOrders,
       }}
     >
       {children}
