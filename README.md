@@ -8,6 +8,8 @@ This website is a full-featured e-commerce platform with:
     Stripe payment integration.
     Robust validation and error handling.
     Centralized state management via React Context.
+    Reviews and one level comments system.
+    Pagination on data (orders, products, comments)
 
 # Main Features & Properties of This Website
 
