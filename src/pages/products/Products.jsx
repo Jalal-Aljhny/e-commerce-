@@ -45,6 +45,8 @@ const Products = () => {
   const navigate = useNavigate();
 
   //
+
+  const [searched, setSearched] = useState(false);
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [productId, setProductId] = useState(null);
@@ -77,15 +79,21 @@ const Products = () => {
   //
   const [query, setQuery] = useState("");
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = async (e) => {
       if (e.key === "Escape") {
         setQuery("");
         handleMode("normal");
+        setSearched(false);
+      } else if (e.key === "Enter") {
+        handleOpenBackdrop();
+        setSearched(true);
+        await searchProducts(query);
+        handleCloseBackdrop();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleMode]);
+  }, [handleMode, query, searchProducts]);
   const [openBackdrop, setOpenBackdrop] = useState(false);
   const handleCloseBackdrop = () => setOpenBackdrop(false);
   const handleOpenBackdrop = () => setOpenBackdrop(true);
@@ -107,13 +115,17 @@ const Products = () => {
             size="small"
             placeholder="Search..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setSearched(false);
+            }}
             sx={{ flexGrow: 1 }}
           />
           <Button
             variant="contained"
             onClick={async () => {
               handleOpenBackdrop();
+              setSearched(true);
               await searchProducts(query);
               handleCloseBackdrop();
             }}
@@ -125,6 +137,7 @@ const Products = () => {
             onClick={() => {
               setQuery("");
               handleMode("normal");
+              setSearched(false);
             }}
           >
             <CloseIcon />
@@ -163,6 +176,7 @@ const Products = () => {
                 // description={product.description}
                 imageUrl={product.image}
                 price={product.price}
+                seller={product.seller}
                 quantity={product.quantity}
                 lastModified={product.lastModified}
                 onShare={handleShareClick}
@@ -174,7 +188,7 @@ const Products = () => {
             </Grid>
           ))}
         </Grid>
-      ) : mode == "search" && srchProducts?.length == 0 ? (
+      ) : mode == "search" && query?.length == 0 ? (
         <small
           className="error"
           style={{
@@ -183,7 +197,18 @@ const Products = () => {
             marginBlock: "2rem",
           }}
         >
-          No products found contains this title ...!
+          Enter title to search ...!
+        </small>
+      ) : mode == "search" && searched && srchProducts?.length == 0 ? (
+        <small
+          className="error"
+          style={{
+            display: "block",
+            marginInline: "auto",
+            marginBlock: "2rem",
+          }}
+        >
+          No products with this title ...!
         </small>
       ) : !loading && !error && products?.length && mode == "normal" ? (
         // products.map((product) => (
@@ -256,7 +281,7 @@ const Products = () => {
             marginBlock: "2rem",
           }}
         >
-          Error when getting products !!!... Return to home page ...
+          Error when getting products !!!...try again :(
         </small>
       ) : !loading && !error && !products?.length && mode == "normal" ? (
         <small className="error">No products available !</small>
