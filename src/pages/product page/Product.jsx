@@ -27,7 +27,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Paper,
   Snackbar,
   TableContainer,
   TextField,
@@ -37,6 +36,7 @@ import CustomCardSkeleton from "../../components/SkeletonCard";
 import ArrowBackSharpIcon from "@mui/icons-material/ArrowBackSharp";
 import RatingInput from "../../components/RatingInput";
 import RatingDisplay from "../../components/RatingOutput";
+import { convertNum } from "../../utils/convertNumber";
 export default function Product() {
   const {
     productData,
@@ -54,7 +54,18 @@ export default function Product() {
     totalCommentsPages,
     currentCommenstPage,
   } = useContext(MainContext);
+  const [productId, setProductId] = useState(null);
+
   const id = location.pathname.split("/")[2];
+
+  //  TODO TEST
+  // useEffect(() => {
+  //   if (productId) {
+  //     let product = productData.find((p) => p.id == productId);
+  //     setMaxQuantity(product.quantity);
+  //   }
+  // }, [productData, productId]);
+  console.log(productData);
   const isMount = useRef(false);
   useEffect(() => {
     if (!isMount.current) {
@@ -65,37 +76,27 @@ export default function Product() {
   useEffect(() => {
     getComments(id);
   }, [getComments, id]);
-  const [seller, setSeller] = useState();
   const [rating, setRating] = useState(0);
   const [newComment, setNewComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [commentUsers, setCommentUsers] = useState({});
 
   useEffect(() => {
+    console.log(comments);
     if (!comments || comments.length === 0) return;
 
-    const uniqueUserIds = [...new Set(comments.map((c) => c.userId))];
+    const uniqueUserIds = [...new Set(comments.map((c) => c.commenter.id))];
 
     Promise.all(
       uniqueUserIds.map((userId) =>
-        getUser(userId).then((res) => ({ userId, user: res.data.user }))
+        getUser(userId).then((res) => ({ userId, user: res.data }))
       )
     ).then((results) => {
       const usersMap = {};
       results.forEach(({ userId, user }) => {
         usersMap[userId] = user;
       });
-      setCommentUsers(usersMap);
     });
   }, [comments, getUser]);
-
-  useEffect(() => {
-    if (productData) {
-      getUser(productData.userId).then((res) => {
-        setSeller(res.data.user);
-      });
-    }
-  }, [getUser, productData]);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const navigate = useNavigate();
@@ -121,7 +122,6 @@ export default function Product() {
   const handleClose = () => {
     setOpen(false);
   };
-  const [productId, setProductId] = useState(null);
   const [loadingCircle, setLoadingCircle] = useState(false);
   const handleSave = async () => {
     setLoadingCircle(true);
@@ -140,13 +140,12 @@ export default function Product() {
     }
   };
   const [editingCommentId, setEditingCommentId] = useState(null);
-  const [editingComment, setEditingComment] = useState(null);
+  // const [editingComment, setEditingComment] = useState(null);
   const [editingCommentContent, setEditingCommentContent] = useState("");
   const [loadingEditCircle, setLoadingEditCircle] = useState();
   const handleStartEdit = (comment) => {
     setEditingCommentId(comment.id);
     setEditingCommentContent(comment.content);
-    setEditingComment(true);
   };
 
   const handleCancelEdit = () => {
@@ -168,12 +167,11 @@ export default function Product() {
     }
     setLoadingEditCircle(false);
   };
-
-  const myProduct = user.latestProducts?.find(
-    (product) => product.id === productData?.id
-  );
-  const myRating = myProduct?.myRating; // or whatever the rating property is called
-
+  // const myProduct =
+  //   user?.latestProducts && productData
+  //     ? user.latestProducts.find((product) => product.id === productData.id)
+  //     : null;
+  const myCountRating = productData?.myRating;
   //
   return (
     <section
@@ -288,14 +286,14 @@ export default function Product() {
                   cursor: "pointer",
                 }}
                 onClick={() => {
-                  navigate(`/seller/${seller.id}`);
+                  navigate(`/seller/${productData.seller.id}`);
                 }}
               >
-                {seller?.name}
+                {productData.seller?.name}
               </Box>
             </Typography>
 
-            <Typography
+            <Box
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
@@ -320,7 +318,7 @@ export default function Product() {
               >
                 quantity : {productData?.quantity}
               </Typography>
-            </Typography>
+            </Box>
             <Typography
               variant="body2"
               sx={{
@@ -380,7 +378,7 @@ export default function Product() {
             }}
           >
             <RatingDisplay
-              average={productData?.ratings.average}
+              average={convertNum(productData?.ratings.average)}
               count={productData?.ratings.count}
               max={5}
             />
@@ -398,18 +396,26 @@ export default function Product() {
                 textAlign: "center",
               }}
             >
-              {myRating ? (
+              {myCountRating ? (
                 <div
                   style={{
                     marginBottom: "1rem",
                   }}
                 >
                   <p>My rating :</p>
-                  <RatingDisplay count={myRating} average={myRating} />
+                  <RatingDisplay
+                    count={myCountRating}
+                    average={myCountRating}
+                  />
                 </div>
               ) : null}
               <div>
-                <h3>Rate this product {myRating ? "again" : null}:</h3>
+                <h3>
+                  {myCountRating
+                    ? "Changed you mind ? rate again"
+                    : "Rate this product "}{" "}
+                  :{" "}
+                </h3>
                 <RatingInput value={rating} onChange={setRating} />
                 {rating ? <p>Your rating: {rating} of 5</p> : null}
               </div>
@@ -433,7 +439,7 @@ export default function Product() {
                 </Button>
               ) : null}
               {isAuth ? (
-                <Accordion>
+                <Accordion elevation={0} sx={{ borderTop: "1px solid #3335" }}>
                   <AccordionSummary
                     expandIcon={<ExpandMoreIcon />}
                     aria-controls="panel4-content"
@@ -486,10 +492,10 @@ export default function Product() {
                             </Typography>
                           ) : (
                             comments.map(
-                              ({ id, userId, lastModify, content }) => {
+                              ({ id, commenter, lastModify, content }) => {
                                 const isEditing = editingCommentId === id;
-                                const isOwner = user.id === userId;
-                                console.log(isOwner);
+                                const isOwner = user.id === commenter.id;
+
                                 return (
                                   <Box
                                     key={id}
@@ -510,9 +516,7 @@ export default function Product() {
                                         justifyContent: "space-between",
                                       }}
                                     >
-                                      By :{" "}
-                                      {commentUsers[userId]?.name ||
-                                        "Loading..."}
+                                      By : {commenter.name || "Loading..."}
                                       <Typography
                                         component="span"
                                         sx={{
@@ -671,7 +675,10 @@ export default function Product() {
             value={dialogValue}
             onChange={(e) => {
               const val = e.target.value;
-              if (val === "" || /^[0-9]+$/.test(val)) {
+              if (
+                val === "" ||
+                (/^[0-9]+$/.test(val) && val <= productData.quantity)
+              ) {
                 setDialgoValue(val);
               }
             }}
