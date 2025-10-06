@@ -15,6 +15,7 @@ export default function CustomCardSkeleton() {
     <Card
       sx={{
         maxWidth: 345,
+        minWidth: 300,
         padding: "1rem",
         borderRadius: "1rem",
       }}
