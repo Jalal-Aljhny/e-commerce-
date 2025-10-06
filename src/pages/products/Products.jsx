@@ -153,7 +153,13 @@ const Products = () => {
           sx={{ alignItems: "stretch", justifyContent: "center" }}
         >
           {Array.from(Array(6)).map((_, index) => (
-            <Grid key={index} className="box" size={{ xs: 2, sm: 4, md: 4 }}>
+            <Grid
+              key={index}
+              className="box"
+              size={{ xs: 2, sm: 4, md: 4 }}
+              display={"flex"}
+              justifyContent={"center"}
+            >
               <CustomCardSkeleton />
             </Grid>
           ))}
@@ -167,13 +173,21 @@ const Products = () => {
           sx={{ alignItems: "stretch", justifyContent: "center" }}
         >
           {srchProducts.map((product, index) => (
-            <Grid key={index} className="box" size={{ xs: 2, sm: 4, md: 4 }}>
+            <Grid
+              key={index}
+              className="box"
+              size={{ xs: 2, sm: 4, md: 4 }}
+              display={"flex"}
+              justifyContent={"center"}
+            >
               <Card
                 id={product.id}
                 key={product.id}
                 title={product.title}
                 categories={product.categories[0].name}
                 // description={product.description}
+                stars={product.averageRating.average}
+                starsCount={product.averageRating.count}
                 imageUrl={product.image}
                 price={product.price}
                 seller={product.seller}
@@ -237,13 +251,21 @@ const Products = () => {
             sx={{ alignItems: "stretch", justifyContent: "center" }}
           >
             {products.map((product, index) => (
-              <Grid key={index} className="box" size={{ xs: 2, sm: 4, md: 4 }}>
+              <Grid
+                key={index}
+                className="box"
+                size={{ xs: 2, sm: 4, md: 4 }}
+                display={"flex"}
+                justifyContent={"center"}
+              >
                 <Card
                   id={product.id}
                   key={product.id}
                   title={product.title}
                   categories={product.categories[0].name}
                   // description={product.description}
+                  stars={product.averageRating.average}
+                  starsCount={product.averageRating.count}
                   imageUrl={product.image}
                   price={product.price}
                   quantity={product.quantity}

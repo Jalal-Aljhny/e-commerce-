@@ -120,6 +120,8 @@ export default function LabTabs() {
                         title={product.title}
                         categories={product.categories[0].name}
                         // description={product.description}
+                        stars={product.averageRating.average}
+                        starsCount={product.averageRating.count}
                         imageUrl={product.image}
                         price={product.price}
                         quantity={product.quantity}

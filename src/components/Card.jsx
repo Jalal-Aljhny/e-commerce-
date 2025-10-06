@@ -13,24 +13,29 @@ import Button from "@mui/material/Button";
 import { convertDate } from "../utils/convertDate";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
+import RatingDisplay from "./RatingOutput";
+import { convertNum } from "../utils/convertNumber";
 export default function CustomCard({
   id,
   title,
   categories,
   // description,
   imageUrl,
+  stars,
+  starsCount,
   price,
   quantity,
   lastModified,
   seller,
   onShare,
-  onOpen,
+  // onOpen,
 }) {
   const navigate = useNavigate();
   return (
     <Card
       sx={{
         maxWidth: 345,
+        width: "100%",
         padding: "1rem",
         borderRadius: "1rem",
         minHeight: "500px",
@@ -139,6 +144,15 @@ export default function CustomCard({
           >
             {seller?.name}
           </Box>
+          {starsCount ? (
+            <RatingDisplay
+              average={convertNum(stars)}
+              count={starsCount}
+              max={5}
+              alignItems={"flex-start"}
+              flexDir={"column"}
+            />
+          ) : null}
         </Typography>
         <div
           style={{
