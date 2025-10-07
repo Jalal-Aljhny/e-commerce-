@@ -78,6 +78,16 @@ function Header() {
               color: "#000",
             }}
           >
+            {!isAuth ? (
+              <IconButton
+                onClick={() => {
+                  navigate("/products");
+                  handleMode("search");
+                }}
+              >
+                <SearchIcon />
+              </IconButton>
+            ) : null}
             <IconButton
               size="large"
               aria-label="account of current user"

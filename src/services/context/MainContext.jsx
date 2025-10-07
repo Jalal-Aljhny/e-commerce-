@@ -63,10 +63,11 @@ export const MainProvider = ({ children }) => {
     try {
       await axios.get("/sanctum/csrf-cookie");
       const response = await axios.get("/api/user", { withCredentials: true });
+      console.log(response);
       const userData = response.data.data;
       setUser(userData);
       setIsAuth(true);
-      setRole(userData.role?.includes("Super Admin") ? "super" : "user");
+      setRole(userData.roles?.includes("Super Admin") ? "super" : "user");
       sessionStorage.setItem("user", JSON.stringify(userData));
 
       if (sessionStorage.getItem("pre_page")) {
@@ -426,6 +427,8 @@ export const MainProvider = ({ children }) => {
       );
 
       console.log("logout response:", response);
+      sessionStorage.clear();
+      // window.location.reload();
       setIsAuth(false);
       navigate("/");
     } catch (error) {
@@ -478,13 +481,18 @@ export const MainProvider = ({ children }) => {
         withCredentials: true,
         headers: { Accept: "application/json" },
       });
-      dispatch({ type: "FETCH_SUCCESS", payload: response.data.data, append });
-      setCurrentPage(response.data.meta.current_page);
-      setLastPage(response.data.meta.last_page);
+      console.log(response);
+      dispatch({
+        type: "FETCH_SUCCESS",
+        payload: response.data.products.data,
+        append,
+      });
+      setCurrentPage(response.data.products.meta.current_page);
+      setLastPage(response.data.products.meta.last_page);
     } catch (error) {
       dispatch({
         type: "FETCH_FAILURE",
-        payload: error.message || "Error fetching products",
+        payload: error || "Error fetching products",
       });
       console.error("Error fetching products:", error);
     }
@@ -626,13 +634,14 @@ export const MainProvider = ({ children }) => {
           withCredentials: true,
         }
       );
-      setSrchProducts(response.data.data);
-    } catch (error) {
-      if (error.response?.status === 422) {
-        alert(error.response.data.message);
+      console.log(response);
+      if (response.data?.products?.data) {
+        setSrchProducts(response.data.products.data);
       } else {
-        console.error("Error searching products:", error);
+        setSrchProducts([]);
       }
+    } catch (error) {
+      console.error("Error searching products:", error);
     }
   };
 
@@ -725,12 +734,12 @@ export const MainProvider = ({ children }) => {
           withCredentials: true,
           headers: { Accept: "application/json" },
         });
-        const newOrders = response.data.data;
+        const newOrders = response.data.orders.data;
         setUserOrders((prevOrders) =>
           append ? [...prevOrders, ...newOrders] : newOrders
         );
-        setCurrentOrderPage(response.data.meta.current_page);
-        setLastOrderPage(response.data.meta.last_page);
+        setCurrentOrderPage(response.orders.meta.current_page);
+        setLastOrderPage(response.orders.meta.last_page);
       } catch (error) {
         console.error("Error fetching current user orders:", error);
       }
@@ -744,13 +753,13 @@ export const MainProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    fetchCurrentUserOrder(1, false);
-  }, [fetchCurrentUserOrder]);
+  // useEffect(() => {
+  //   fetchCurrentUserOrder(1, false);
+  // }, [fetchCurrentUserOrder]);
 
   const fetchOrderItems = useCallback(async (id) => {
     try {
-      const response = await axios.get(`/api/orders/${id}`, {
+      const response = await axios.get(`/api/orders/${id}/items`, {
         withCredentials: true,
         headers: { Accept: "application/json" },
       });
@@ -778,12 +787,12 @@ export const MainProvider = ({ children }) => {
         withCredentials: true,
         headers: { Accept: "application/json" },
       });
-      const newOrders = response.data.data;
+      const newOrders = response.data.orders.data;
       setAllOrders((prevOrders) =>
         append ? [...prevOrders, ...newOrders] : newOrders
       );
-      setCurrentAllOrdersPage(response.data.meta.current_page);
-      setLastAllOrdersPage(response.data.meta.last_page);
+      setCurrentAllOrdersPage(response.orders.meta.current_page);
+      setLastAllOrdersPage(response.orders.meta.last_page);
     } catch (err) {
       console.error("Failed to load orders", err);
     }
@@ -957,7 +966,7 @@ export const MainProvider = ({ children }) => {
       await axios.get("/sanctum/csrf-cookie");
       await axios.post(
         // "/api/checkout/create-payment-intent",
-        `/api/users/${sellerId}/rating`,
+        `/api/users/${sellerId}/ratings`,
         { stars: stars },
         {
           headers: {
@@ -976,7 +985,7 @@ export const MainProvider = ({ children }) => {
       await axios.get("/sanctum/csrf-cookie");
       await axios.post(
         // "/api/checkout/create-payment-intent",
-        `/api/products/${id}/rating`,
+        `/api/products/${id}/ratings`,
         { stars: stars },
         {
           headers: {

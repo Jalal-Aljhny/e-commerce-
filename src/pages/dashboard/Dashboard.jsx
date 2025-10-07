@@ -177,7 +177,7 @@ const Dashboard = () => {
       const map = {};
       for (const product of products) {
         if (!map[product.userId]) {
-          const res = await getUser(product.userId);
+          const res = await getUser(product.seller.id);
           map[product.userId] = res?.data.user;
         }
       }
@@ -204,7 +204,7 @@ const Dashboard = () => {
   };
   return (
     <section style={{ marginBottom: "15rem" }}>
-      <Accordion>
+      <Accordion elevation={0}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel1-content"
@@ -225,22 +225,22 @@ const Dashboard = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {users.map(({ id, name, email, role }) => (
+                {users.map(({ id, name, email, roles }) => (
                   <TableRow key={id}>
                     {/* <TableCell>{id}</TableCell> */}
 
                     <TableCell>{name}</TableCell>
                     <TableCell>{email}</TableCell>
                     <TableCell>
-                      {role?.includes("Super Admin") ? "Super Admin" : "User"}
+                      {roles?.includes("Super Admin") ? "Super Admin" : "User"}
                       <IconButton
                         edge="end"
                         aria-label="update"
                         sx={{
                           "&:hover": { color: "green" },
                         }}
-                        onClick={() => handleOpenRole(id, role)}
-                        disabled={role?.includes("Super Admin")}
+                        onClick={() => handleOpenRole(id, roles)}
+                        disabled={roles?.includes("Super Admin")}
                       >
                         <EditIcon />
                       </IconButton>
@@ -269,7 +269,7 @@ const Dashboard = () => {
                           await deleteUser(id);
                           handleCloseBackdrop();
                         }}
-                        disabled={role?.includes("Super Admin")}
+                        disabled={roles?.includes("Super Admin")}
                       >
                         Delete
                       </Button>
@@ -299,7 +299,7 @@ const Dashboard = () => {
           ) : null}
         </AccordionDetails>
       </Accordion>
-      <Accordion>
+      <Accordion elevation={0} sx={{ borderTop: "1px solid #3335" }}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel2-content"
@@ -454,7 +454,7 @@ const Dashboard = () => {
           </List>
         </AccordionDetails>
       </Accordion>
-      <Accordion>
+      <Accordion elevation={0} sx={{ borderTop: "1px solid #3335" }}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel3-content"
@@ -527,7 +527,7 @@ const Dashboard = () => {
           </TableContainer>
         </AccordionDetails>
       </Accordion>
-      <Accordion>
+      <Accordion elevation={0} sx={{ borderTop: "1px solid #3335" }}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel4-content"
@@ -542,7 +542,7 @@ const Dashboard = () => {
         </AccordionDetails>
       </Accordion>
       {/* //TODO show order data */}
-      <Accordion>
+      <Accordion elevation={0} sx={{ borderTop: "1px solid #3335" }}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel5-content"
@@ -572,7 +572,7 @@ const Dashboard = () => {
                   </TableRow>
                 )}
 
-                {allOrders.map(({ id, createdAt, status, totalPrice }) => {
+                {allOrders.map(({ id, createdAt, status, total }) => {
                   const items = orderItemsMap[id] || [];
                   return (
                     <Fragment key={id}>
@@ -604,9 +604,7 @@ const Dashboard = () => {
                             sx={{ fontWeight: "bold" }}
                           />
                         </TableCell>
-                        <TableCell>
-                          ${parseFloat(totalPrice).toFixed(2)}
-                        </TableCell>
+                        <TableCell>${parseFloat(total).toFixed(2)}</TableCell>
                         {/* <TableCell align="center">
                           <Button
                             variant="contained"

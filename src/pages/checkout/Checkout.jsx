@@ -64,6 +64,8 @@ export default function Checkout() {
         width: "100%",
         display: "flex",
         justifyContent: "space-between",
+        alignItems: { xs: "center" },
+        flexDirection: { xs: "column", md: "row" },
         paddingInline: "2rem",
       }}
     >
@@ -146,7 +148,7 @@ export default function Checkout() {
           {loading ? <CircularProgress size={24} /> : "Place my order"}
         </Button>
       </Box>
-      <Box sx={{ width: "50%" }}>
+      <Box sx={{ width: { sx: "80%", md: "50%" } }}>
         <CartPage checkout={false} />
       </Box>
     </Box>

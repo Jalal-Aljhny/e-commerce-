@@ -38,7 +38,7 @@ const SignUp = () => {
       // data.country,
       // data.phone
     );
-    setLoading(true);
+    setLoading(false);
   };
   // const [image, setImage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -304,8 +304,12 @@ const SignUp = () => {
           style={{ padding: "1rem" }}
         />
       </div> */}
-      <button className="submit" type="submit" disabled={loading}>
-        {loading ? "loading ..." : "Register"}
+      <button
+        className="submit"
+        type="submit"
+        disabled={loading || registerError}
+      >
+        {loading && !registerError ? "loading ..." : "Register"}
       </button>
       <Link
         to={"/login"}

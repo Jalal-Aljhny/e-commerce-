@@ -28,6 +28,7 @@ const EditProfilePage = () => {
     updateUserData,
     role,
     user: userRegistered,
+    checkAuth,
   } = useContext(MainContext);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -133,10 +134,12 @@ const EditProfilePage = () => {
       handleShareClick();
     } finally {
       setLoading(false);
+
       if (role == "super") {
         navigate("/dashboard");
       } else {
-        navigate("/profile");
+        await navigate("/profile");
+        window.location.reload();
       }
     }
   };
@@ -294,7 +297,7 @@ const EditProfilePage = () => {
               />
 
               {/* Role select: hide if user has "Super Admin" role */}
-              {userRegistered?.role?.includes("Super Admin") ? (
+              {/* {userRegistered?.role?.includes("Super Admin") ? (
                 <FormControl fullWidth error={!!errors.role}>
                   <InputLabel id="role-select-label">Role</InputLabel>
                   <Select
@@ -316,7 +319,7 @@ const EditProfilePage = () => {
                     </Typography>
                   )}
                 </FormControl>
-              ) : null}
+              ) : null} */}
             </Stack>
 
             <Divider sx={{ my: 3 }} />

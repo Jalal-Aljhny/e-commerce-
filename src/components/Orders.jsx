@@ -91,7 +91,7 @@ const OrdersTable = () => {
             </TableRow>
           )}
 
-          {userOrders.map(({ id, createdAt, status, totalPrice }) => {
+          {userOrders.map(({ id, createdAt, status, total }) => {
             const items = orderItemsMap[id] || [];
             return (
               <Fragment key={id}>
@@ -121,7 +121,7 @@ const OrdersTable = () => {
                       sx={{ fontWeight: "bold" }}
                     />
                   </TableCell>
-                  <TableCell>${parseFloat(totalPrice).toFixed(2)}</TableCell>
+                  <TableCell>${parseFloat(Number(total)).toFixed(2)}</TableCell>
                   <TableCell align="center">
                     <Button
                       variant="contained"
@@ -167,80 +167,82 @@ const OrdersTable = () => {
                     style={{ paddingBottom: 0, paddingTop: 0 }}
                     colSpan={6}
                   >
-                    <Collapse
-                      in={expandedOrderId === id}
-                      timeout="auto"
-                      unmountOnExit
-                    >
-                      <Box margin={1}>
-                        <Typography
-                          variant="subtitle1"
-                          gutterBottom
-                          component="div"
-                        >
-                          Items
-                        </Typography>
-                        <Table size="small" aria-label="order-items">
-                          <TableHead>
-                            <TableRow>
-                              <TableCell>Product</TableCell>
-                              <TableCell>Quantity</TableCell>
-                              <TableCell>Unit Price</TableCell>
-                              <TableCell>Total Price</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {items.length === 0 && (
+                    {items.length > 0 ? (
+                      <Collapse
+                        in={expandedOrderId === id}
+                        timeout="auto"
+                        unmountOnExit
+                      >
+                        <Box margin={1}>
+                          <Typography
+                            variant="subtitle1"
+                            gutterBottom
+                            component="div"
+                          >
+                            Items
+                          </Typography>
+                          <Table size="small" aria-label="order-items">
+                            <TableHead>
                               <TableRow>
-                                <TableCell colSpan={4} align="center">
-                                  No items found.
-                                </TableCell>
+                                <TableCell>Product</TableCell>
+                                <TableCell>Quantity</TableCell>
+                                <TableCell>Unit Price</TableCell>
+                                <TableCell>Total Price</TableCell>
                               </TableRow>
-                            )}
-                            {items.map(
-                              ({
-                                id: itemId,
-                                quantity,
-                                unitPrice,
-                                totalPrice,
-                                product,
-                              }) => (
-                                <TableRow key={itemId}>
-                                  <TableCell>
-                                    <Box
-                                      display="flex"
-                                      alignItems="center"
-                                      gap={1}
-                                    >
-                                      {product.image && (
-                                        <img
-                                          src={product.image}
-                                          alt={product.title}
-                                          style={{
-                                            width: 50,
-                                            height: 50,
-                                            objectFit: "cover",
-                                            borderRadius: 4,
-                                          }}
-                                        />
-                                      )}
-                                      <Typography>{product.title}</Typography>
-                                    </Box>
-                                  </TableCell>
-                                  <TableCell>{quantity}</TableCell>
-                                  <TableCell>
-                                    ${parseFloat(unitPrice).toFixed(2)}
-                                  </TableCell>
-                                  <TableCell>
-                                    ${parseFloat(totalPrice).toFixed(2)}
+                            </TableHead>
+                            <TableBody>
+                              {items.length === 0 && (
+                                <TableRow>
+                                  <TableCell colSpan={4} align="center">
+                                    No items found.
                                   </TableCell>
                                 </TableRow>
-                              )
-                            )}
-                          </TableBody>
-                        </Table>
-                      </Box>
-                    </Collapse>
+                              )}
+                              {items.map(
+                                ({
+                                  id: itemId,
+                                  quantity,
+                                  unitPrice,
+                                  totalPrice,
+                                  product,
+                                }) => (
+                                  <TableRow key={itemId}>
+                                    <TableCell>
+                                      <Box
+                                        display="flex"
+                                        alignItems="center"
+                                        gap={1}
+                                      >
+                                        {product.image && (
+                                          <img
+                                            src={product.image}
+                                            alt={product.title}
+                                            style={{
+                                              width: 50,
+                                              height: 50,
+                                              objectFit: "cover",
+                                              borderRadius: 4,
+                                            }}
+                                          />
+                                        )}
+                                        <Typography>{product.title}</Typography>
+                                      </Box>
+                                    </TableCell>
+                                    <TableCell>{quantity}</TableCell>
+                                    <TableCell>
+                                      ${parseFloat(unitPrice).toFixed(2)}
+                                    </TableCell>
+                                    <TableCell>
+                                      ${parseFloat(totalPrice).toFixed(2)}
+                                    </TableCell>
+                                  </TableRow>
+                                )
+                              )}
+                            </TableBody>
+                          </Table>
+                        </Box>
+                      </Collapse>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               </Fragment>

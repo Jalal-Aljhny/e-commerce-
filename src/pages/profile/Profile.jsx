@@ -103,7 +103,9 @@ const ProfilePage = () => {
             Roles:
           </Typography>
           <Typography variant="body1">
-            {user.role.length > 0 ? user.role.join(", ") : "No roles assigned"}
+            {user?.role?.length > 0
+              ? user.role.join(", ")
+              : "No roles assigned"}
           </Typography>
         </Stack>
         <Box
