@@ -10,6 +10,7 @@ This website is a full-featured e-commerce platform with:
     Centralized state management via React Context.
     Reviews and one level comments system.
     Pagination on data (orders, products, comments)
+    Skeleton loading on content.
 
 # Main Features & Properties of This Website
 
