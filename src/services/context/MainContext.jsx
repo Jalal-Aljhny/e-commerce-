@@ -81,18 +81,30 @@ export const MainProvider = ({ children }) => {
       sessionStorage.removeItem("user");
     }
   }, [navigate]);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(false);
 
   useEffect(() => {
     if (!user) {
-      checkAuth();
+      const runAuthCheck = async () => {
+        setIsLoadingAuth(true);
+        await checkAuth();
+        setIsLoadingAuth(false);
+      };
+
+      runAuthCheck();
     }
   }, [checkAuth, user]);
-  const [authChecked, setAuthChecked] = useState(false);
-  useEffect(() => {
-    if (!authChecked) {
-      checkAuth().finally(() => setAuthChecked(true));
-    }
-  }, [authChecked, checkAuth]);
+
+  // useEffect(() => {
+  //   if (!user) {
+  //     checkAuth();
+  //   }
+  // }, [checkAuth, user]);
+  // useEffect(() => {
+  //   if (!authChecked) {
+  //     checkAuth().finally(() => setAuthChecked(true));
+  //   }
+  // }, [authChecked, checkAuth]);
 
   // const checkUser = useCallback(async (userId) => {
   //   try {
@@ -429,6 +441,7 @@ export const MainProvider = ({ children }) => {
       console.log("logout response:", response);
       sessionStorage.clear();
       // window.location.reload();
+      setUser(null);
       setIsAuth(false);
       navigate("/");
     } catch (error) {
@@ -1160,6 +1173,7 @@ export const MainProvider = ({ children }) => {
         updateComment,
         totalCommentsPages,
         currentCommenstPage,
+        isLoadingAuth,
       }}
     >
       {children}
